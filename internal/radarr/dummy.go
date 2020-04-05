@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 var dummyMovieResponse string = `
@@ -154,12 +153,18 @@ var dummySystemStatusResponse string = `
 }`
 
 var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", dummyMovieResponse, dummyMovieResponse)
+var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", dummyMovieResponse)
 
 // DummyUnauthorizedResponse describe Unauthorized Radarr response
 var DummyUnauthorizedResponse string = `{"error": "Unauthorized"}`
 
 // DummyNotFoundResponse describe NoFound Radarr response
 var DummyNotFoundResponse string = `{"message": "NotFound"}`
+
+var dummyEmptyListResponse string = `[]`
+
+var dummyStartDate string = url.QueryEscape("2019-11-19T23:00:00Z")
+var dummyEndDate string = url.QueryEscape("2019-11-20T23:00:00Z")
 
 var (
 	// DummyHTTPClient mocked http client
@@ -202,48 +207,68 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 		}, nil
 	}
 
-	// Mock GET /movie
-	if strings.Contains(targetURL, "/movie") {
+	switch targetURL {
+	case fmt.Sprintf("%s/api%s/%d?apikey=%s", DummyURL, "/movie", 217, DummyAPIKey):
+		// Get one movie
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMovieResponse)),
+		}, nil
 
-		switch targetURL {
-		case fmt.Sprintf("%s/api%s/%d?apikey=%s", DummyURL, "/movie", 217, DummyAPIKey):
-			// Get one movie
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Status:     http.StatusText(http.StatusOK),
-				Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMovieResponse)),
-			}, nil
+	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/movie", DummyAPIKey):
+		// List of movies
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
+		}, nil
 
-		case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/movie", DummyAPIKey):
-			// List of movies
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Status:     http.StatusText(http.StatusOK),
-				Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
-			}, nil
+	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/calendar", DummyAPIKey):
+		// Upcoming movies without filters. Return 0 movies
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
+		}, nil
 
-		default:
-			// Defaulting to 404
-			return &http.Response{
-				StatusCode: http.StatusNotFound,
-				Status:     http.StatusText(http.StatusNotFound),
-				Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
-			}, nil
-		}
-	}
+	case fmt.Sprintf("%s/api%s?apikey=%s&start=%s", DummyURL, "/calendar", DummyAPIKey, dummyStartDate):
+		// Upcoming movies with start filter. Returns 2 movies
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
+		}, nil
 
-	// Mock GET /system/status
-	if strings.Contains(targetURL, "/system/status") {
+	case fmt.Sprintf("%s/api%s?apikey=%s&start=%s&end=%s", DummyURL, "/calendar", DummyAPIKey, dummyStartDate, dummyEndDate):
+		// Upcoming movies with start filter and end filter. Return 1 movies
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s?apikey=%s&end=%s&start=%s", DummyURL, "/calendar", DummyAPIKey, dummyEndDate, dummyStartDate):
+		// Upcoming movies with start filter and end filter. Return 1 movies. Same as abose but with reverse parameters
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/system/status", DummyAPIKey):
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummySystemStatusResponse)),
 		}, nil
-	}
 
-	return &http.Response{
-		StatusCode: http.StatusNotFound,
-		Status:     http.StatusText(http.StatusNotFound),
-		Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
-	}, nil
+	default:
+		// Defaulting to 404
+		return &http.Response{
+			StatusCode: http.StatusNotFound,
+			Status:     http.StatusText(http.StatusNotFound),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
+		}, nil
+	}
 }
