@@ -1,0 +1,168 @@
+name: Release package
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    tags:
+      - "v*.*.*"
+      - "!v*.*.*-*"
+
+jobs:
+  lint:
+    name: Lint code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install golint
+        run: go get -u -v golang.org/x/lint/golint
+
+      - name: Lint!
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          golint -set_exit_status ./...
+
+  format:
+    name: Go format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Test gogmt
+        run: test $(gofmt -l -e . | wc -l) -eq 0
+
+      - name: Print gofmt errors
+        if: failure()
+        run: gofmt -d .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Execute local tests
+        run: go test -v -coverprofile=cover.out -cover ./...
+
+      - name: Generate coverage report
+        run: go tool cover -html=cover.out -o coverage.html
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v1
+        with:
+          name: code-coverage-report
+          path: coverage.html
+
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Go install
+        run: go install .
+
+  build:
+    name: Build
+    needs:
+      - lint
+      - format
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup gox
+        run: go get github.com/mitchellh/gox
+
+      - name: Build
+        run: |
+          REPO_ROOT=$(git rev-parse --show-toplevel)
+          export PATH=$PATH:$(go env GOPATH)/bin
+          export VERSION=$(git describe --tags --exact-match 2>/dev/null)
+          (cd ./cmd/radarr; gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}")
+
+      - name: Upload them as artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: binaries
+          path: bin
+
+  release:
+    name: Github Release
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Set up Go 1.14
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/checkout@v2
+
+      - name: Get back artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/download-artifact@v1
+        with:
+          name: binaries
+
+      - name: Install git-chglog
+        if: startsWith(github.ref, 'refs/tags/')
+        run: go get -u github.com/git-chglog/git-chglog/cmd/git-chglog
+
+      - name: Generate changelog
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          git-chglog -o CHANGELOG.md
+
+      - name: Create a new release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: binaries/radarr*
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

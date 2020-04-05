@@ -1,0 +1,104 @@
+name: Push
+
+on:
+  push:
+    branches-ignore: [master]
+
+jobs:
+  lint:
+    name: Lint code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install golint
+        run: go get -u -v golang.org/x/lint/golint
+
+      - name: Lint!
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          golint -set_exit_status ./...
+
+  format:
+    name: Go format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Test gogmt
+        run: test $(gofmt -l -e . | wc -l) -eq 0
+
+      - name: Print gofmt errors
+        if: failure()
+        run: gofmt -d .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Execute local tests
+        run: go test -v -coverprofile=cover.out -cover ./...
+
+      - name: Generate coverage report
+        run: go tool cover -html=cover.out -o coverage.html
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v1
+        with:
+          name: code-coverage-report
+          path: coverage.html
+
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Go install
+        run: go install .
+
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Go install
+        run: go install .

@@ -21,9 +21,6 @@ func ExampleNew_basic() {
 		log.Fatalln(err)
 	}
 	fmt.Printf("%s", movie.Title)
-
-	// Output:
-	// Frozen II
 }
 
 // Instanciate a client with a custom HTTP client
@@ -40,7 +37,4 @@ func ExampleNew_advanced() {
 		log.Fatalln(err)
 	}
 	fmt.Printf("%s", movie.Title)
-
-	// Output:
-	// Frozen II
 }
