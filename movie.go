@@ -3,6 +3,7 @@ package radarr
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -129,8 +130,15 @@ func newMovieService(s *Service) *MovieService {
 	}
 }
 
-// GetMovie https://github.com/Radarr/Radarr/wiki/API:Movie#getid
-func (m *MovieService) GetMovie(movieID int) (*Movie, error) {
+// UpcomingOptions describe period to search upcoming movies with
+type UpcomingOptions struct {
+	Start *time.Time
+	End   *time.Time
+}
+
+// Get Returns all Movies in your collection
+// https://github.com/Radarr/Radarr/wiki/API:Movie#getid
+func (m *MovieService) Get(movieID int) (*Movie, error) {
 	movieURL := fmt.Sprintf("%s/api%s/%d?apikey=%s", m.s.url, movieURI, movieID, m.s.apiKey)
 	response, err := m.s.client.Get(movieURL)
 	if err != nil {
@@ -149,10 +157,57 @@ func (m *MovieService) GetMovie(movieID int) (*Movie, error) {
 	return &movie, nil
 }
 
-// ListMovies https://github.com/Radarr/Radarr/wiki/API:Movie#get
-func (m *MovieService) ListMovies() (*Movies, error) {
+// List Returns the movie with the matching ID or eerror if no matching movie is found
+// https://github.com/Radarr/Radarr/wiki/API:Movie#get
+func (m *MovieService) List() (*Movies, error) {
 	moviesURL := fmt.Sprintf("%s/api%s?apikey=%s", m.s.url, movieURI, m.s.apiKey)
 	response, err := m.s.client.Get(moviesURL)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	err = parseRadarrResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	var movies Movies
+	json.NewDecoder(response.Body).Decode(&movies)
+
+	return &movies, nil
+}
+
+// Upcoming Gets upcoming movies from your Radarr library, if start/end are not supplied movies airing today and tomorrow will be returned
+// Its match the physicalRelease attribute
+// https://github.com/Radarr/Radarr/wiki/API:Calendar#get
+func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
+	params := url.Values{}
+
+	// If option is provided, incule them in the request
+	if len(opts) > 0 {
+
+		// If both dates are filled, verify order
+		if opts[0].Start != nil && opts[0].End != nil {
+			if opts[0].End.Before(*opts[0].Start) || opts[0].Start.After(*opts[0].End) {
+				return nil, fmt.Errorf("Incorrect dates. Please ensure date are set properly")
+			}
+		}
+
+		// If start date is defined
+		if opts[0].Start != nil {
+			params.Add("start", opts[0].Start.Format(time.RFC3339))
+		}
+
+		// If end date is defined
+		if opts[0].End != nil {
+			params.Add("end", opts[0].End.Format(time.RFC3339))
+		}
+	}
+
+	params.Add("apikey", m.s.apiKey)
+	upcomingURL := fmt.Sprintf("%s/api%s?%s", m.s.url, upcomingURI, params.Encode())
+	response, err := m.s.client.Get(upcomingURL)
 	if err != nil {
 		return nil, err
 	}

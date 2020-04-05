@@ -62,6 +62,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					&cli.Command{
 						Name:    "list",
+						Usage:   "List all movies in your collection",
 						Aliases: []string{"ls"},
 						Action:  listMovies,
 					},
@@ -69,6 +70,27 @@ func main() {
 						Name:   "get",
 						Usage:  "Search a movie bu ID",
 						Action: getMovie,
+					},
+					&cli.Command{
+						Name:   "upcoming",
+						Usage:  "List upcoming movies",
+						Action: upcoming,
+						Flags: []cli.Flag{
+							&cli.TimestampFlag{
+								Name:        "start",
+								Required:    false,
+								Usage:       "Specify a start date",
+								Layout:      "2006-01-02T15:04:05Z",
+								DefaultText: "",
+							},
+							&cli.TimestampFlag{
+								Name:        "end",
+								Required:    false,
+								Usage:       "Specify a end date",
+								Layout:      "2006-01-02T15:04:05Z",
+								DefaultText: "",
+							},
+						},
 					},
 				},
 			},
@@ -104,7 +126,7 @@ func listMovies(*cli.Context) error {
 		return err
 	}
 
-	movies, err := client.Movies.ListMovies()
+	movies, err := client.Movies.List()
 	if err != nil {
 		return err
 	}
@@ -130,7 +152,7 @@ func getMovie(c *cli.Context) error {
 		return err
 	}
 
-	movie, err := client.Movies.GetMovie(m)
+	movie, err := client.Movies.Get(m)
 	if err != nil {
 		return err
 	}
@@ -156,6 +178,37 @@ func getStatus(*cli.Context) error {
 	}
 
 	r, err := json.Marshal(status)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(r))
+	return nil
+}
+
+func upcoming(c *cli.Context) error {
+	client, err := initRadarrClient()
+	if err != nil {
+		return err
+	}
+
+	start := c.Value("start").(cli.Timestamp)
+	end := c.Value("end").(cli.Timestamp)
+
+	opts := &radarr.UpcomingOptions{}
+	if start.Value() != nil {
+		opts.Start = start.Value()
+	}
+	if end.Value() != nil {
+		opts.End = end.Value()
+	}
+
+	movies, err := client.Movies.Upcoming(opts)
+	if err != nil {
+		return err
+	}
+
+	r, err := json.Marshal(movies)
 	if err != nil {
 		return err
 	}

@@ -15,7 +15,7 @@ func TestGetMovie(t *testing.T) {
 	})
 
 	// Search a non-existing movie
-	movie, err := service.GetMovie(123456789)
+	movie, err := service.Get(123456789)
 	cases := []internal.TestCase{
 		internal.TestCase{
 			Title:    "Error should be not nil",
@@ -35,7 +35,7 @@ func TestGetMovie(t *testing.T) {
 	}
 
 	// Search an existing movie
-	movie, err = service.GetMovie(217)
+	movie, err = service.Get(217)
 	expectedTitle := "Frozen II"
 	cases = append(cases, []internal.TestCase{
 		internal.TestCase{
@@ -57,7 +57,7 @@ func TestGetMovie(t *testing.T) {
 
 	// Bad API key
 	service.s.apiKey = "foo"
-	movie, err = service.GetMovie(217)
+	movie, err = service.Get(217)
 	cases = append(cases, []internal.TestCase{
 		internal.TestCase{
 			Title:    "Movie should be nil because of bad API key",
@@ -93,7 +93,7 @@ func TestListMovies(t *testing.T) {
 		apiKey: internal.DummyAPIKey,
 	})
 
-	movies, err := service.ListMovies()
+	movies, err := service.List()
 	expectedTitle := "Frozen II"
 	m := *movies
 	cases := []internal.TestCase{
@@ -121,7 +121,7 @@ func TestListMovies(t *testing.T) {
 
 	// Bad api key
 	service.s.apiKey = "foo"
-	movies, err = service.ListMovies()
+	movies, err = service.List()
 	cases = append(cases, []internal.TestCase{
 		internal.TestCase{
 			Title:    "Error message should contain Unauthorized",

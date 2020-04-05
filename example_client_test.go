@@ -16,7 +16,7 @@ func ExampleNew_basic() {
 		log.Fatalln(err)
 	}
 
-	movie, err := client.Movies.GetMovie(217)
+	movie, err := client.Movies.Get(217)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -35,7 +35,7 @@ func ExampleNew_advanced() {
 		log.Fatalln(err)
 	}
 
-	movie, err := client.Movies.GetMovie(217)
+	movie, err := client.Movies.Get(217)
 	if err != nil {
 		log.Fatalln(err)
 	}
