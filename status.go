@@ -50,7 +50,6 @@ func (s *SystemStatusService) Get() (*SystemStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	err = parseRadarrResponse(response)
 	if err != nil {
@@ -58,7 +57,11 @@ func (s *SystemStatusService) Get() (*SystemStatus, error) {
 	}
 
 	var status SystemStatus
-	json.NewDecoder(response.Body).Decode(&status)
+	err = json.NewDecoder(response.Body).Decode(&status)
+	if err != nil {
+		return nil, err
+	}
 
+	_ = response.Body.Close()
 	return &status, nil
 }

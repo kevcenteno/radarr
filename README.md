@@ -56,3 +56,7 @@ func main() {
 	// Frozen II
 }
 ```
+
+## Debug
+
+You can set `LOG_LEVEL=DEBUG` to print all requests/responses

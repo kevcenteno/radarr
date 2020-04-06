@@ -2,82 +2,81 @@ package radarr
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
+	"time"
 
 	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
-func TestServiceIsWellInstanciated(t *testing.T) {
-	// Bad URL
-	service, err := New("bad-url", internal.DummyAPIKey, internal.DummyHTTPClient)
-	cases := []internal.TestCase{
-		internal.TestCase{
-			Title:    "Invalid URL error should be not nil",
-			Expected: false,
-			Got:      err == nil,
-		},
-		internal.TestCase{
-			Title:    "Error message",
-			Expected: "Please specify a valid URL",
-			Got:      err.Error(),
-		},
+func TestNew(t *testing.T) {
+	type args struct {
+		radarrURL string
+		apiKey    string
+		client    HTTPClientInterface
 	}
 
-	// Good service
-	service, err = New(internal.DummyURL, internal.DummyAPIKey, internal.DummyHTTPClient)
-	cases = append(cases, []internal.TestCase{
-		internal.TestCase{
-			Title:    "HTTP client service should be our testing service",
-			Expected: true,
-			Got:      service.client == internal.DummyHTTPClient,
-		},
-		internal.TestCase{
-			Title:    "Error should be nil",
-			Expected: nil,
-			Got:      err,
-		},
-	}...)
+	var serviceWithCustomHTTPClient *Service = &Service{url: internal.DummyURL, apiKey: internal.DummyAPIKey, client: internal.DummyHTTPClient}
+	serviceWithCustomHTTPClient.Movies = newMovieService(serviceWithCustomHTTPClient)
+	serviceWithCustomHTTPClient.Diskspace = newDiskspaceService(serviceWithCustomHTTPClient)
+	serviceWithCustomHTTPClient.SystemStatus = newSystemStatusService(serviceWithCustomHTTPClient)
 
-	// Test different services
-	cases = append(cases, []internal.TestCase{
-		internal.TestCase{
-			Title:    "Movies service should be not nil",
-			Expected: false,
-			Got:      service.Movies == nil,
-		},
-		internal.TestCase{
-			Title:    "SystemStatus should be not nil",
-			Expected: false,
-			Got:      service.SystemStatus == nil,
-		},
-	}...)
+	client := http.Client{}
+	client.Timeout = time.Second * 10
+	client.Transport = newTransport()
+	var serviceWithDefaultHTTPClient *Service = &Service{url: internal.DummyURL, apiKey: internal.DummyAPIKey, client: &client}
+	serviceWithDefaultHTTPClient.Movies = newMovieService(serviceWithDefaultHTTPClient)
+	serviceWithDefaultHTTPClient.Diskspace = newDiskspaceService(serviceWithDefaultHTTPClient)
+	serviceWithDefaultHTTPClient.SystemStatus = newSystemStatusService(serviceWithDefaultHTTPClient)
 
-	// Service with default http client
-	service, _ = New(internal.DummyURL, internal.DummyAPIKey, nil)
-	cases = append(cases, internal.TestCase{
-		Title:    "HTTP client service should be the default http client",
-		Expected: http.DefaultClient,
-		Got:      service.client,
-	})
-
-	// Test attributes
-	cases = append(cases, []internal.TestCase{
-		internal.TestCase{
-			Title:    "URL should be the same",
-			Expected: internal.DummyURL,
-			Got:      service.url,
+	tests := []struct {
+		name    string
+		args    args
+		want    *Service
+		wantErr bool
+	}{
+		struct {
+			name    string
+			args    args
+			want    *Service
+			wantErr bool
+		}{
+			name:    "Error because of bad URL",
+			args:    args{apiKey: internal.DummyAPIKey, radarrURL: "bad-url", client: internal.DummyHTTPClient},
+			wantErr: true,
 		},
-		internal.TestCase{
-			Title:    "API key should be the same",
-			Expected: internal.DummyAPIKey,
-			Got:      service.apiKey,
+		struct {
+			name    string
+			args    args
+			want    *Service
+			wantErr bool
+		}{
+			name:    "Good service",
+			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: internal.DummyHTTPClient},
+			wantErr: false,
+			want:    serviceWithCustomHTTPClient,
 		},
-	}...)
-
-	for _, c := range cases {
-		t.Run(c.Title, func(t *testing.T) {
-			if c.Expected != c.Got {
-				t.Errorf("Got '%v' want '%v'", c.Got, c.Expected)
+		struct {
+			name    string
+			args    args
+			want    *Service
+			wantErr bool
+		}{
+			name:    "Default HTTP Client",
+			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: nil},
+			wantErr: false,
+			want:    serviceWithDefaultHTTPClient,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := New(tt.args.radarrURL, tt.args.apiKey, tt.args.client)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
 		})
 	}

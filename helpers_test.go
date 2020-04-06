@@ -10,42 +10,61 @@ import (
 	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
-func TestParseRadarrResponse(t *testing.T) {
-	response := http.Response{
-		Status:     http.StatusText(http.StatusOK),
-		StatusCode: http.StatusOK,
-		Body:       http.NoBody,
-	}
-
-	// Parse a response 200
-	err := parseRadarrResponse(&response)
-	cases := []internal.TestCase{
-		internal.TestCase{
-			Title:    "Error should be nil",
-			Expected: true,
-			Got:      err == nil,
-		},
-	}
-
-	// Test condition on statusCode with Unknown message
-	status := [3]int{http.StatusNotFound, http.StatusForbidden, http.StatusUnauthorized}
-	var expectedMessage string
-	for _, s := range status {
-		t.Run(http.StatusText(s), func(t *testing.T) {
-			r := &http.Response{
-				StatusCode: s,
+func Test_parseRadarrResponse(t *testing.T) {
+	tests := []struct {
+		name        string
+		response    *http.Response
+		wantErr     bool
+		wantMessage string
+	}{
+		{
+			name: "Invalid JSON",
+			response: &http.Response{
+				StatusCode: http.StatusNotFound,
 				Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
-			}
-			err = parseRadarrResponse(r)
-			if err == nil {
-				t.Error("Error should not be nil")
-			}
-			expectedMessage = fmt.Sprintf("Radarr error: code %d, message '%s'", s, "Unknown")
-			if err.Error() != expectedMessage {
-				t.Errorf("Got'%s' want '%s'", err.Error(), expectedMessage)
-			}
-
-		})
+			},
+			wantErr:     true,
+			wantMessage: "invalid character 'o' in literal false (expecting 'a')",
+		},
+		{
+			name: "No error",
+			response: &http.Response{
+				Status:     http.StatusText(http.StatusOK),
+				StatusCode: http.StatusOK,
+				Body:       http.NoBody,
+			},
+			wantErr: false,
+		},
+		{
+			name: http.StatusText(http.StatusNotFound),
+			response: &http.Response{
+				Status:     http.StatusText(http.StatusNotFound),
+				StatusCode: http.StatusNotFound,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
+			},
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusNotFound, "Unknown"),
+			wantErr:     true,
+		},
+		{
+			name: http.StatusText(http.StatusForbidden),
+			response: &http.Response{
+				Status:     http.StatusText(http.StatusForbidden),
+				StatusCode: http.StatusForbidden,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
+			},
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusForbidden, "Unknown"),
+			wantErr:     true,
+		},
+		{
+			name: http.StatusText(http.StatusUnauthorized),
+			response: &http.Response{
+				Status:     http.StatusText(http.StatusUnauthorized),
+				StatusCode: http.StatusUnauthorized,
+				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
+			},
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusUnauthorized, "Unknown"),
+			wantErr:     true,
+		},
 	}
 
 	// Test 'error' and 'message' key
@@ -59,43 +78,37 @@ func TestParseRadarrResponse(t *testing.T) {
 			"expected_message": "NotFound",
 		},
 	}
+
 	// For each keys, create a new response with respond responseBody["response"].
 	// The expected message should be responseBody["expected_message"]
 	for key, responseBody := range keys {
-		response = http.Response{
+		response := &http.Response{
 			StatusCode: http.StatusUnauthorized,
 			Body:       ioutil.NopCloser(bytes.NewBufferString(responseBody["response"])),
 		}
-		err = parseRadarrResponse(&response)
 
-		// Cast our error
-		v, ok := err.(*Error)
-		if !ok {
-			t.Error("err should be an instance of Error")
-		}
-		cases = append(cases, []internal.TestCase{
-			internal.TestCase{
-				Title:    fmt.Sprintf("Key '%s': error message: %s", key, http.StatusText(http.StatusUnauthorized)),
-				Expected: responseBody["expected_message"],
-				Got:      v.Message,
-			},
-			internal.TestCase{
-				Title:    fmt.Sprintf("Key '%s': message code: %s", key, http.StatusText(http.StatusUnauthorized)),
-				Expected: http.StatusUnauthorized,
-				Got:      v.Code,
-			},
-			internal.TestCase{
-				Title:    fmt.Sprintf("Key '%s': message Error(): %s", key, http.StatusText(http.StatusUnauthorized)),
-				Expected: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusUnauthorized, responseBody["expected_message"]),
-				Got:      v.Error(),
-			},
-		}...)
+		tests = append(tests, struct {
+			name        string
+			response    *http.Response
+			wantErr     bool
+			wantMessage string
+		}{
+			name:        fmt.Sprintf("Key '%s': message Error(): %s", key, http.StatusText(http.StatusUnauthorized)),
+			response:    response,
+			wantErr:     true,
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusUnauthorized, responseBody["expected_message"]),
+		})
 	}
 
-	for _, c := range cases {
-		t.Run(c.Title, func(t *testing.T) {
-			if c.Expected != c.Got {
-				t.Errorf("Got '%v' want '%v'", c.Got, c.Expected)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := parseRadarrResponse(tt.response)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseRadarrResponse() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && err.Error() != tt.wantMessage {
+				t.Errorf("err.Error() error = %s, wantMessage %s", err.Error(), tt.wantMessage)
 			}
 		})
 	}

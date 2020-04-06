@@ -3,6 +3,7 @@ package radarr
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -166,6 +167,12 @@ var dummyEmptyListResponse string = `[]`
 var dummyStartDate string = url.QueryEscape("2019-11-19T23:00:00Z")
 var dummyEndDate string = url.QueryEscape("2019-11-20T23:00:00Z")
 
+var dummyGenericResponse = &http.Response{
+	StatusCode: http.StatusOK,
+	Status:     http.StatusText(http.StatusOK),
+	Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
+}
+
 var (
 	// DummyHTTPClient mocked http client
 	DummyHTTPClient *HTTPClient
@@ -175,11 +182,40 @@ var (
 
 	// DummyAPIKey dummy Radarr API keys
 	DummyAPIKey string = "dummy-api-key"
+
+	// ParseDummyURL parsed dummy URL
+	ParseDummyURL, _ = url.Parse(DummyURL)
 )
 
-func init() {
-	// Create a mock http client
-	DummyHTTPClient = &HTTPClient{}
+type mockedTransport1 struct {
+	http.RoundTripper
+	MockedResponse *http.Response
+}
+type mockedTransport2 struct {
+	http.RoundTripper
+	MockedResponse *http.Response
+}
+
+// MockedTransports mocked http.Client transport
+type MockedTransports struct {
+	MockedTransport1 *mockedTransport1
+	MockedTransport2 *mockedTransport2
+}
+
+// NewMockedTransports MockedTransports constructor
+func NewMockedTransports() *MockedTransports {
+	return &MockedTransports{
+		MockedTransport1: &mockedTransport1{MockedResponse: dummyGenericResponse},
+		MockedTransport2: &mockedTransport2{MockedResponse: dummyGenericResponse},
+	}
+}
+
+func (r *mockedTransport1) RoundTrip(req *http.Request) (*http.Response, error) {
+	return r.MockedResponse, nil
+}
+
+func (*mockedTransport2) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, errors.New("foo")
 }
 
 // TestCase describe a test case
@@ -191,6 +227,11 @@ type TestCase struct {
 
 // HTTPClient implements HTTPClientInterface
 type HTTPClient struct{}
+
+func init() {
+	// Create a mock http client
+	DummyHTTPClient = &HTTPClient{}
+}
 
 // Get mock GET requests
 func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {

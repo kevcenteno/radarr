@@ -13,7 +13,10 @@ func parseRadarrResponse(response *http.Response) error {
 
 		// Because Radarr response contains 'error' key or 'message' key. Parse it, and set to e.Message
 		var body map[string]string
-		json.NewDecoder(response.Body).Decode(&body)
+		err := json.NewDecoder(response.Body).Decode(&body)
+		if err != nil {
+			return err
+		}
 		if body["error"] != "" {
 			e.Message = body["error"]
 		} else if body["message"] != "" {

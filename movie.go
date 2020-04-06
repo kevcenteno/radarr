@@ -144,7 +144,6 @@ func (m *MovieService) Get(movieID int) (*Movie, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	err = parseRadarrResponse(response)
 	if err != nil {
@@ -152,8 +151,12 @@ func (m *MovieService) Get(movieID int) (*Movie, error) {
 	}
 
 	var movie Movie
-	json.NewDecoder(response.Body).Decode(&movie)
+	err = json.NewDecoder(response.Body).Decode(&movie)
+	if err != nil {
+		return nil, err
+	}
 
+	_ = response.Body.Close()
 	return &movie, nil
 }
 
@@ -165,7 +168,6 @@ func (m *MovieService) List() (*Movies, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	err = parseRadarrResponse(response)
 	if err != nil {
@@ -173,8 +175,12 @@ func (m *MovieService) List() (*Movies, error) {
 	}
 
 	var movies Movies
-	json.NewDecoder(response.Body).Decode(&movies)
+	err = json.NewDecoder(response.Body).Decode(&movies)
+	if err != nil {
+		return nil, err
+	}
 
+	_ = response.Body.Close()
 	return &movies, nil
 }
 
@@ -211,7 +217,6 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	err = parseRadarrResponse(response)
 	if err != nil {
@@ -219,7 +224,11 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 	}
 
 	var movies Movies
-	json.NewDecoder(response.Body).Decode(&movies)
+	err = json.NewDecoder(response.Body).Decode(&movies)
+	if err != nil {
+		return nil, err
+	}
 
+	_ = response.Body.Close()
 	return &movies, nil
 }

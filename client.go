@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 // HTTPClientInterface interface for the http.Client
@@ -20,8 +21,12 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 	}
 
 	// if client not specified, defaulting to default http client
+	// TODO: test it
 	if client == nil {
-		client = http.DefaultClient
+		d := http.DefaultClient
+		d.Transport = newTransport()
+		d.Timeout = time.Second * 10
+		client = d
 	}
 
 	s := &Service{client: client, url: valid.String(), apiKey: apiKey}
