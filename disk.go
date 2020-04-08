@@ -22,9 +22,7 @@ type DiskspaceService struct {
 }
 
 func newDiskspaceService(s *Service) *DiskspaceService {
-	return &DiskspaceService{
-		s: s,
-	}
+	return &DiskspaceService{s}
 }
 
 // Get return Radarr disk space info

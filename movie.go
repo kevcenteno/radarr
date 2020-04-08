@@ -126,9 +126,7 @@ type MovieService struct {
 }
 
 func newMovieService(s *Service) *MovieService {
-	return &MovieService{
-		s: s,
-	}
+	return &MovieService{s}
 }
 
 // UpcomingOptions describe period to search upcoming movies with

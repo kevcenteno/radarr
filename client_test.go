@@ -20,6 +20,7 @@ func TestNew(t *testing.T) {
 	serviceWithCustomHTTPClient.Movies = newMovieService(serviceWithCustomHTTPClient)
 	serviceWithCustomHTTPClient.Diskspace = newDiskspaceService(serviceWithCustomHTTPClient)
 	serviceWithCustomHTTPClient.SystemStatus = newSystemStatusService(serviceWithCustomHTTPClient)
+	serviceWithCustomHTTPClient.Command = newCommandService(serviceWithCustomHTTPClient)
 
 	client := http.Client{}
 	client.Timeout = time.Second * 10
@@ -28,6 +29,7 @@ func TestNew(t *testing.T) {
 	serviceWithDefaultHTTPClient.Movies = newMovieService(serviceWithDefaultHTTPClient)
 	serviceWithDefaultHTTPClient.Diskspace = newDiskspaceService(serviceWithDefaultHTTPClient)
 	serviceWithDefaultHTTPClient.SystemStatus = newSystemStatusService(serviceWithDefaultHTTPClient)
+	serviceWithDefaultHTTPClient.Command = newCommandService(serviceWithDefaultHTTPClient)
 
 	tests := []struct {
 		name    string

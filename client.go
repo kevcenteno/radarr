@@ -32,6 +32,7 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 	s.Movies = newMovieService(s)
 	s.SystemStatus = newSystemStatusService(s)
 	s.Diskspace = newDiskspaceService(s)
+	s.Command = newCommandService(s)
 
 	return s, nil
 }
@@ -52,4 +53,7 @@ type Service struct {
 
 	// https://github.com/Radarr/Radarr/wiki/API:Diskspace
 	Diskspace *DiskspaceService
+
+	// https://github.com/Radarr/Radarr/wiki/API:Command
+	Command *CommandService
 }

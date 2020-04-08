@@ -38,9 +38,7 @@ type SystemStatusService struct {
 }
 
 func newSystemStatusService(s *Service) *SystemStatusService {
-	return &SystemStatusService{
-		s: s,
-	}
+	return &SystemStatusService{s}
 }
 
 // Get https://github.com/Radarr/Radarr/wiki/API:System-Status#get
