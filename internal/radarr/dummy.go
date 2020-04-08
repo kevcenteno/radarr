@@ -10,7 +10,8 @@ import (
 	"net/url"
 )
 
-var dummyMovieResponse string = `
+// DummyMovieResponse describe a dymmy movie
+var DummyMovieResponse string = `
 {
   "title": "Frozen II",
   "alternativeTitles": [
@@ -153,8 +154,23 @@ var dummySystemStatusResponse string = `
   "runtimeName": "netCore"
 }`
 
-var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", dummyMovieResponse, dummyMovieResponse)
-var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", dummyMovieResponse)
+var dummyDiskspaceResponse string = `
+[{
+  "path": "/",
+  "label": "/",
+  "freeSpace": 11059175424,
+  "totalSpace": 15614754816
+},
+{
+  "path": "/home",
+  "label": "/home",
+  "freeSpace": 88775757824,
+  "totalSpace": 98325770240
+}
+]`
+
+var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", DummyMovieResponse, DummyMovieResponse)
+var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", DummyMovieResponse)
 
 // DummyUnauthorizedResponse describe Unauthorized Radarr response
 var DummyUnauthorizedResponse string = `{"error": "Unauthorized"}`
@@ -218,13 +234,6 @@ func (*mockedTransport2) RoundTrip(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("foo")
 }
 
-// TestCase describe a test case
-type TestCase struct {
-	Title    string
-	Expected interface{}
-	Got      interface{}
-}
-
 // HTTPClient implements HTTPClientInterface
 type HTTPClient struct{}
 
@@ -254,7 +263,7 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMovieResponse)),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyMovieResponse)),
 		}, nil
 
 	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/movie", DummyAPIKey):
@@ -281,6 +290,14 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
 		}, nil
 
+	case fmt.Sprintf("%s/api%s?apikey=%s&end=%s", DummyURL, "/calendar", DummyAPIKey, dummyEndDate):
+		// Upcoming movies with end filter. Returns 0 movies
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
+		}, nil
+
 	case fmt.Sprintf("%s/api%s?apikey=%s&start=%s&end=%s", DummyURL, "/calendar", DummyAPIKey, dummyStartDate, dummyEndDate):
 		// Upcoming movies with start filter and end filter. Return 1 movies
 		return &http.Response{
@@ -302,6 +319,13 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummySystemStatusResponse)),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/diskspace", DummyAPIKey):
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyDiskspaceResponse)),
 		}, nil
 
 	default:

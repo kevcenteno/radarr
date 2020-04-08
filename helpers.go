@@ -17,6 +17,7 @@ func parseRadarrResponse(response *http.Response) error {
 		if err != nil {
 			return err
 		}
+
 		if body["error"] != "" {
 			e.Message = body["error"]
 		} else if body["message"] != "" {

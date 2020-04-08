@@ -15,7 +15,7 @@ Here are the currently supported endpoints:
 
 - [x] Calendar
 - [ ] Command
-- [ ] Diskspace
+- [x] Diskspace
 - [ ] History
 - [ ] Movie
   - [x] Returns all Movies in your collection
@@ -25,6 +25,7 @@ Here are the currently supported endpoints:
   - [ ] Delete the movie with the given ID
 - [ ] Movie Lookup
 - [ ] Queue
+- [ ] List Exclusions
 - [x] System-Status
 
 ## Getting started

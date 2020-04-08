@@ -1,7 +1,7 @@
 package radarr
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"net/url"
 	"time"
@@ -17,11 +17,10 @@ type HTTPClientInterface interface {
 func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error) {
 	valid, err := url.ParseRequestURI(radarrURL)
 	if err != nil {
-		return nil, fmt.Errorf("Please specify a valid URL")
+		return nil, errors.New("Please specify a valid URL")
 	}
 
 	// if client not specified, defaulting to default http client
-	// TODO: test it
 	if client == nil {
 		d := http.DefaultClient
 		d.Transport = newTransport()
@@ -32,6 +31,7 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 	s := &Service{client: client, url: valid.String(), apiKey: apiKey}
 	s.Movies = newMovieService(s)
 	s.SystemStatus = newSystemStatusService(s)
+	s.Diskspace = newDiskspaceService(s)
 
 	return s, nil
 }
@@ -42,6 +42,14 @@ type Service struct {
 	url    string // Radarr base URL
 	apiKey string
 
-	Movies       *MovieService
+	// https://github.com/Radarr/Radarr/wiki/API:Calendar
+	// https://github.com/Radarr/Radarr/wiki/API:Movie
+	// https://github.com/Radarr/Radarr/wiki/API:Movie-Lookup
+	Movies *MovieService
+
+	// https://github.com/Radarr/Radarr/wiki/API:System-Status
 	SystemStatus *SystemStatusService
+
+	// https://github.com/Radarr/Radarr/wiki/API:Diskspace
+	Diskspace *DiskspaceService
 }

@@ -2,6 +2,7 @@ package radarr
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -196,7 +197,7 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 		// If both dates are filled, verify order
 		if opts[0].Start != nil && opts[0].End != nil {
 			if opts[0].End.Before(*opts[0].Start) || opts[0].Start.After(*opts[0].End) {
-				return nil, fmt.Errorf("Incorrect dates. Please ensure date are set properly")
+				return nil, errors.New("Incorrect dates. Please ensure date are set properly")
 			}
 		}
 
