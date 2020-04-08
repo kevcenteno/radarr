@@ -205,11 +205,11 @@ func Test_isDebugLevel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv(envLog, tt.name)
+			_ = os.Setenv(envLog, tt.name)
 			if got := isDebugLevel(); got != tt.want {
 				t.Errorf("isDebugLevel() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-	os.Unsetenv(envLog)
+	_ = os.Unsetenv(envLog)
 }

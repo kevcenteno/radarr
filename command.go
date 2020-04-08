@@ -27,7 +27,8 @@ type Command struct {
 	ID                  int       `json:"id"`
 }
 
-type Tasks []Command
+// Commands is a set of commands
+type Commands []Command
 
 // CommandService not usable for now
 // contains Radarr commands operations
@@ -45,7 +46,7 @@ func (c *CommandService) Status(commandID string) *Command {
 }
 
 // StatusAll Queries the status of all currently started commands.
-func (c *CommandService) StatusAll() *Tasks {
+func (c *CommandService) StatusAll() *Command {
 	return nil
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/SkYNewZ/radarr"
 )
 
-// Instanciate a standard client
+// Instantiate a standard client
 func ExampleNew_basic() {
 	client, err := radarr.New("https://my.radarr-instance.fr", "radarr-api-key", nil)
 	if err != nil {
@@ -23,7 +23,7 @@ func ExampleNew_basic() {
 	fmt.Printf("%s", movie.Title)
 }
 
-// Instanciate a client with a custom HTTP client
+// Instantiate a client with a custom HTTP client
 func ExampleNew_advanced() {
 	client, err := radarr.New("https://my.radarr-instance.fr", "radarr-api-key", &http.Client{
 		Timeout: time.Second * 10,

@@ -5,4 +5,5 @@ const (
 	statusURI    string = "/system/status"
 	upcomingURI  string = "/calendar"
 	diskspaceURI string = "/diskspace"
+	historyURI   string = "/history"
 )

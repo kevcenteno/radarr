@@ -169,6 +169,91 @@ var dummyDiskspaceResponse string = `
 }
 ]`
 
+// DummyHistoryResponse describe /history response
+var DummyHistoryResponse string = `
+{
+	"page": 1,
+	"pageSize": 1,
+	"sortKey": "date",
+	"sortDirection": "descending",
+	"totalRecords": 131,
+	"records": [{
+		"movieId": 194,
+		"sourceTitle": "/movies/Ford v Ferrari (2019)/Ford.v.Ferrari.2019.MULTi.2160p.UHD.BluRay.REMUX.HEVC-BEO.mkv",
+		"quality": {
+			"quality": {
+				"id": 31,
+				"name": "Remux-2160p",
+				"source": "bluray",
+				"resolution": 2160,
+				"modifier": "remux"
+			},
+			"revision": {
+				"version": 1,
+				"real": 0,
+				"isRepack": false
+			}
+		},
+		"qualityCutoffNotMet": false,
+		"date": "2020-04-05T19:43:55.5957884Z",
+		"eventType": "movieFileDeleted",
+		"data": {
+			"reason": "MissingFromDisk"
+		},
+		"movie": {
+			"title": "Le Mans 66",
+			"alternativeTitles": [],
+			"secondaryYearSourceId": 0,
+			"sortTitle": "le mans 66",
+			"sizeOnDisk": 0,
+			"status": "released",
+			"overview": "Relate l’histoire vraie qui a conduit l’ingénieur automobile visionnaire américain Caroll Shelby à faire équipe avec le pilote de course britannique surdoué Ken Miles. Bravant l’ordre établi, défiant les lois de la physique et luttant contre leurs propres démons, les deux hommes n’avaient qu’un seul but: construire pour le compte de Ford Motor Company un bolide révolutionnaire capable de renverser la suprématie de l’écurie d’Enzo Ferrari sur le mythique circuit des 24 heures du Mans en 1966…",
+			"inCinemas": "2019-11-12T23:00:00Z",
+			"physicalRelease": "2020-01-28T00:00:00Z",
+			"images": [{
+					"coverType": "poster",
+					"url": "http://image.tmdb.org/t/p/original/8yyRujXGSNCa3yrM3qoLZXUW3WY.jpg"
+				},
+				{
+					"coverType": "fanart",
+					"url": "http://image.tmdb.org/t/p/original/n3UanIvmnBlH531pykuzNs4LbH6.jpg"
+				}
+			],
+			"website": "https://www.foxmovies.com/movies/ford-v-ferrari",
+			"downloaded": false,
+			"year": 2019,
+			"hasFile": false,
+			"youTubeTrailerId": "EVZbiA81v7w",
+			"studio": "20th Century Fox",
+			"path": "/movies/Ford v Ferrari (2019)",
+			"profileId": 5,
+			"monitored": false,
+			"minimumAvailability": "released",
+			"isAvailable": true,
+			"folderName": "/movies/Ford v Ferrari (2019)",
+			"runtime": 152,
+			"lastInfoSync": "2020-04-07T19:51:24.7882218Z",
+			"cleanTitle": "lemans66",
+			"imdbId": "tt1950186",
+			"tmdbId": 359724,
+			"titleSlug": "le-mans-66-359724",
+			"genres": [
+				"Drame",
+				"Action"
+			],
+			"tags": [],
+			"added": "2019-12-15T16:26:32.3913355Z",
+			"ratings": {
+				"votes": 2228,
+				"value": 7.8
+			},
+			"qualityProfileId": 5,
+			"id": 194
+		},
+		"id": 138
+	}]
+}`
+
 var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", DummyMovieResponse, DummyMovieResponse)
 var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", DummyMovieResponse)
 
@@ -240,6 +325,51 @@ type HTTPClient struct{}
 func init() {
 	// Create a mock http client
 	DummyHTTPClient = &HTTPClient{}
+}
+
+// Do mocked http client Do function
+func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
+	// Test valid API key
+	params, _ := url.ParseQuery(req.URL.RawQuery)
+	key := params.Get("apikey")
+
+	if key != DummyAPIKey {
+		return &http.Response{
+			StatusCode: http.StatusUnauthorized,
+			Status:     http.StatusText(http.StatusUnauthorized),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyUnauthorizedResponse)),
+		}, nil
+	}
+
+	switch req.URL.String() {
+	case fmt.Sprintf("%s/api%s?apikey=%s&page=1&pageSize=50", DummyURL, "/history", DummyAPIKey):
+		// Return one record on page 1
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyHistoryResponse)),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s?apikey=%s&page=3&pageSize=50", DummyURL, "/history", DummyAPIKey):
+		// Return bad JSON for page 3
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s?apikey=%s&page=4&pageSize=50", DummyURL, "/history", DummyAPIKey):
+		// Return error for page 4
+		return nil, errors.New("Oooops")
+
+	default:
+		// Defaulting to 404
+		return &http.Response{
+			StatusCode: http.StatusNotFound,
+			Status:     http.StatusText(http.StatusNotFound),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
+		}, nil
+	}
 }
 
 // Get mock GET requests

@@ -16,7 +16,7 @@ Here are the currently supported endpoints:
 - [x] Calendar
 - [ ] Command
 - [x] Diskspace
-- [ ] History
+- [x] History
 - [ ] Movie
   - [x] Returns all Movies in your collection
   - [x] Returns the movie with the matching ID or 404 if no matching movie is found
@@ -40,7 +40,7 @@ import (
 	"github.com/SkYNewZ/radarr"
 )
 
-// Instanciate a standard client
+// Instantiate a standard client
 func main() {
 	client, err := radarr.New("https://my.radarr-instance.fr", "radarr-api-key", nil)
 	if err != nil {

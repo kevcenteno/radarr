@@ -10,6 +10,7 @@ import (
 // HTTPClientInterface interface for the http.Client
 type HTTPClientInterface interface {
 	Get(url string) (resp *http.Response, err error)
+	Do(req *http.Request) (*http.Response, error)
 }
 
 // New Create a Radarr client
@@ -33,6 +34,7 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 	s.SystemStatus = newSystemStatusService(s)
 	s.Diskspace = newDiskspaceService(s)
 	s.Command = newCommandService(s)
+	s.History = newHistoryService(s)
 
 	return s, nil
 }
@@ -56,4 +58,7 @@ type Service struct {
 
 	// https://github.com/Radarr/Radarr/wiki/API:Command
 	Command *CommandService
+
+	// https://github.com/Radarr/Radarr/wiki/API:History
+	History *HistoryService
 }

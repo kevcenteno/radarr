@@ -67,13 +67,7 @@ type Movie struct {
 		DateAdded    time.Time `json:"dateAdded"`
 		SceneName    string    `json:"sceneName"`
 		Quality      struct {
-			Quality struct {
-				ID         int    `json:"id"`
-				Name       string `json:"name"`
-				Source     string `json:"source"`
-				Resolution int    `json:"resolution"`
-				Modifier   string `json:"modifier"`
-			} `json:"quality"`
+			Quality  Quality `json:"quality"`
 			Revision struct {
 				Version  int  `json:"version"`
 				Real     int  `json:"real"`
@@ -115,6 +109,15 @@ type Movie struct {
 	} `json:"movieFile"`
 	QualityProfileID int `json:"qualityProfileId"`
 	ID               int `json:"id"`
+}
+
+// Quality movir quality
+type Quality struct {
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	Source     string `json:"source"`
+	Resolution int    `json:"resolution"`
+	Modifier   string `json:"modifier"`
 }
 
 // Movies multiple Radarr movies

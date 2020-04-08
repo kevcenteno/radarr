@@ -59,7 +59,7 @@ func TestCommandService_StatusAll(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   *Tasks
+		want   *Command
 	}{
 		// TODO: Add test cases.
 	}

@@ -11,10 +11,11 @@ const (
 	Copy
 )
 
+// DownloadedMoviesScanOptions available options when using DownloadedMoviesScanCommand
 type DownloadedMoviesScanOptions struct {
 	Path             string     `json:"path"`
 	DownloadClientID string     `json:"downloadClientId"`
-	IportMode        ImportMode `json:"importMode"`
+	ImportMode       ImportMode `json:"importMode"`
 }
 
 var availableImportMode [2]string = [2]string{"Move", "Copy"}
