@@ -140,8 +140,9 @@ jobs:
       - name: Generate changelog
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          export VERSION=$(git describe --tags --exact-match 2>/dev/null)
           export PATH=$PATH:$(go env GOPATH)/bin
-          git-chglog -o CHANGELOG.md
+          git-chglog --output CHANGELOG.md ${VERSION}
 
       - name: Create a new release
         uses: softprops/action-gh-release@v1
