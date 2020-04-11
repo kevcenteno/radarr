@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -123,6 +125,15 @@ type Quality struct {
 // Movies multiple Radarr movies
 type Movies []Movie
 
+// DeleteMovieOptions optionnal option while deleting movie
+type DeleteMovieOptions struct {
+	// If true the movie folder and all files will be deleted when the movie is deleted
+	DeleteFiles bool
+
+	// If true the movie TMDB ID will be added to the import exclusions list when the movie is deleted
+	AddExclusion bool
+}
+
 // MovieService contains Radarr movies operations
 type MovieService struct {
 	s *Service
@@ -233,4 +244,32 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 
 	_ = response.Body.Close()
 	return &movies, nil
+}
+
+// Delete given movie
+// https://github.com/Radarr/Radarr/wiki/API:Movie#deleteid
+func (m *MovieService) Delete(movie *Movie, opts ...*DeleteMovieOptions) error {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/api%s/%d", m.s.url, movieURI, movie.ID), nil)
+	if err != nil {
+		return err
+	}
+
+	params := req.URL.Query()
+	params.Add("apikey", m.s.apiKey)
+
+	// If option given, parse and send to request
+	if len(opts) > 0 {
+		d := opts[0]
+		params.Add("deleteFiles", strconv.FormatBool(d.DeleteFiles))
+		params.Add("addExclusion", strconv.FormatBool(d.AddExclusion))
+	}
+
+	req.URL.RawQuery = params.Encode()
+	resp, err := m.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	err = parseRadarrResponse(resp)
+	return err
 }

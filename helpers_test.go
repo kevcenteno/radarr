@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_parseRadarrResponse(t *testing.T) {
@@ -70,11 +68,11 @@ func Test_parseRadarrResponse(t *testing.T) {
 	// Test 'error' and 'message' key
 	keys := map[string]map[string]string{
 		"error": map[string]string{
-			"response":         internal.DummyUnauthorizedResponse,
+			"response":         `{"error": "Unauthorized"}`,
 			"expected_message": "Unauthorized",
 		},
 		"message": map[string]string{
-			"response":         internal.DummyNotFoundResponse,
+			"response":         `{"message": "NotFound"}`,
 			"expected_message": "NotFound",
 		},
 	}

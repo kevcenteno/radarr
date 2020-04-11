@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // DummyMovieResponse describe a dymmy movie
@@ -257,11 +258,17 @@ var DummyHistoryResponse string = `
 var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", DummyMovieResponse, DummyMovieResponse)
 var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", DummyMovieResponse)
 
-// DummyUnauthorizedResponse describe Unauthorized Radarr response
-var DummyUnauthorizedResponse string = `{"error": "Unauthorized"}`
+var dummyUnauthorizedResponse *http.Response = &http.Response{
+	StatusCode: http.StatusUnauthorized,
+	Status:     http.StatusText(http.StatusUnauthorized),
+	Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error": "Unauthorized"}`)),
+}
 
-// DummyNotFoundResponse describe NoFound Radarr response
-var DummyNotFoundResponse string = `{"message": "NotFound"}`
+var dummyNotFoundResponse *http.Response = &http.Response{
+	StatusCode: http.StatusNotFound,
+	Status:     http.StatusText(http.StatusNotFound),
+	Body:       ioutil.NopCloser(bytes.NewBufferString(`{"message": "NotFound"}`)),
+}
 
 var dummyEmptyListResponse string = `[]`
 
@@ -334,41 +341,94 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	key := params.Get("apikey")
 
 	if key != DummyAPIKey {
-		return &http.Response{
-			StatusCode: http.StatusUnauthorized,
-			Status:     http.StatusText(http.StatusUnauthorized),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyUnauthorizedResponse)),
-		}, nil
+		return dummyUnauthorizedResponse, nil
 	}
 
-	switch req.URL.String() {
-	case fmt.Sprintf("%s/api%s?apikey=%s&page=1&pageSize=50", DummyURL, "/history", DummyAPIKey):
-		// Return one record on page 1
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyHistoryResponse)),
-		}, nil
+	if req.Method == http.MethodGet {
+		switch req.URL.String() {
+		case fmt.Sprintf("%s/api%s?apikey=%s&page=1&pageSize=50", DummyURL, "/history", DummyAPIKey):
+			// Return one record on page 1
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     http.StatusText(http.StatusOK),
+				Body:       ioutil.NopCloser(bytes.NewBufferString(DummyHistoryResponse)),
+			}, nil
 
-	case fmt.Sprintf("%s/api%s?apikey=%s&page=3&pageSize=50", DummyURL, "/history", DummyAPIKey):
-		// Return bad JSON for page 3
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
-		}, nil
+		case fmt.Sprintf("%s/api%s?apikey=%s&page=3&pageSize=50", DummyURL, "/history", DummyAPIKey):
+			// Return bad JSON for page 3
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     http.StatusText(http.StatusOK),
+				Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
+			}, nil
 
-	case fmt.Sprintf("%s/api%s?apikey=%s&page=4&pageSize=50", DummyURL, "/history", DummyAPIKey):
-		// Return error for page 4
-		return nil, errors.New("Oooops")
+		case fmt.Sprintf("%s/api%s?apikey=%s&page=4&pageSize=50", DummyURL, "/history", DummyAPIKey):
+			// Return error for page 4
+			return nil, errors.New("Oooops")
+		default:
+			return dummyNotFoundResponse, nil
+		}
+	}
 
-	default:
-		// Defaulting to 404
-		return &http.Response{
-			StatusCode: http.StatusNotFound,
-			Status:     http.StatusText(http.StatusNotFound),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
-		}, nil
+	if req.Method == http.MethodDelete {
+		// Delete movie
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s/%d", DummyURL, "/movie", 217)) {
+			deleteFiles := params.Get("deleteFiles")
+			addExclusion := params.Get("addExclusion")
+
+			// without parameters
+			if addExclusion == "" && deleteFiles == "" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+				}, nil
+			}
+
+			// With all false
+			if addExclusion == "false" && deleteFiles == "false" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+				}, nil
+			}
+
+			// With all true
+			if addExclusion == "true" && deleteFiles == "true" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+				}, nil
+			}
+
+			// With addExclusion=true and deleteFiles=false
+			if addExclusion == "true" && deleteFiles == "false" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+				}, nil
+			}
+
+			// With addExclusion=false and deleteFiles=true
+			if addExclusion == "false" && deleteFiles == "true" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{}`)),
+				}, nil
+			}
+		}
+
+		return dummyNotFoundResponse, nil
+	}
+
+	return nil, &url.Error{
+		Op:  req.Method,
+		URL: req.URL.String(),
+		Err: errors.New("Ooops"),
 	}
 }
 
@@ -380,11 +440,7 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 	key := params.Get("apikey")
 
 	if key != DummyAPIKey {
-		return &http.Response{
-			StatusCode: http.StatusUnauthorized,
-			Status:     http.StatusText(http.StatusUnauthorized),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyUnauthorizedResponse)),
-		}, nil
+		return dummyUnauthorizedResponse, nil
 	}
 
 	switch targetURL {
@@ -460,10 +516,6 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 
 	default:
 		// Defaulting to 404
-		return &http.Response{
-			StatusCode: http.StatusNotFound,
-			Status:     http.StatusText(http.StatusNotFound),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyNotFoundResponse)),
-		}, nil
+		return dummyNotFoundResponse, nil
 	}
 }

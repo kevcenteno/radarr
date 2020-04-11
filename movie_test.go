@@ -247,3 +247,75 @@ func TestMovieService_Upcoming(t *testing.T) {
 		})
 	}
 }
+
+func TestMovieService_Delete(t *testing.T) {
+	type args struct {
+		movie *Movie
+		opts  []*DeleteMovieOptions
+	}
+
+	var dummyMovie *Movie
+	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &dummyMovie)
+	if err != nil {
+		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	}
+
+	goodService := newMovieService(&Service{
+		client: internal.DummyHTTPClient,
+		url:    internal.DummyURL,
+		apiKey: internal.DummyAPIKey,
+	})
+	badService := newMovieService(&Service{
+		client: internal.DummyHTTPClient,
+		url:    internal.DummyURL,
+		apiKey: "foo",
+	})
+
+	tests := []struct {
+		name    string
+		service *Service
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Bad API key",
+			service: badService.s,
+			args:    args{movie: dummyMovie},
+			wantErr: true,
+		},
+		{
+			name:    "Delete without option",
+			service: goodService.s,
+			args:    args{movie: dummyMovie},
+			wantErr: false,
+		},
+		{
+			name:    "Delete with addExclusion option",
+			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{AddExclusion: true}}},
+			service: goodService.s,
+			wantErr: false,
+		},
+		{
+			name:    "Delete with deleteFiles option",
+			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true}}},
+			service: goodService.s,
+			wantErr: false,
+		},
+		{
+			name:    "Delete with both options",
+			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true, AddExclusion: true}}},
+			service: goodService.s,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &MovieService{
+				s: tt.service,
+			}
+			if err := m.Delete(tt.args.movie, tt.args.opts...); (err != nil) != tt.wantErr {
+				t.Errorf("MovieService.Delete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
