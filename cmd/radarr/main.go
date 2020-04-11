@@ -13,6 +13,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -54,24 +55,41 @@ func main() {
 				Destination: &radarrAPIKey,
 			},
 		},
-		Authors: []*cli.Author{&cli.Author{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
+		Authors: []*cli.Author{{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
 		Commands: []*cli.Command{
-			&cli.Command{
+			{
 				Name:  "movies",
 				Usage: "Perform actions on movies",
 				Subcommands: []*cli.Command{
-					&cli.Command{
+					{
 						Name:    "list",
 						Usage:   "List all movies in your collection",
 						Aliases: []string{"ls"},
 						Action:  listMovies,
 					},
-					&cli.Command{
+					{
 						Name:   "get",
-						Usage:  "Search a movie bu ID",
+						Usage:  "Search a movie by ID",
 						Action: getMovie,
 					},
-					&cli.Command{
+					{
+						Name:   "delete",
+						Usage:  "Delete a movie by ID",
+						Action: deleteMovie,
+						Flags: []cli.Flag{
+							&cli.BoolFlag{
+								Name:     "delete-files",
+								Usage:    "If true the movie folder and all files will be deleted when the movie is deleted",
+								Required: false,
+							},
+							&cli.BoolFlag{
+								Name:     "blacklist",
+								Usage:    "If true the movie TMDB ID will be added to the import exclusions list when the movie is deleted",
+								Required: false,
+							},
+						},
+					},
+					{
 						Name:   "upcoming",
 						Usage:  "List upcoming movies",
 						Action: upcoming,
@@ -81,20 +99,20 @@ func main() {
 								Required:    false,
 								Usage:       "Specify a start date",
 								Layout:      "2006-01-02T15:04:05Z",
-								DefaultText: "",
+								DefaultText: "bitos",
 							},
 							&cli.TimestampFlag{
 								Name:        "end",
 								Required:    false,
 								Usage:       "Specify a end date",
 								Layout:      "2006-01-02T15:04:05Z",
-								DefaultText: "",
+								DefaultText: "bitos2",
 							},
 						},
 					},
 				},
 			},
-			&cli.Command{
+			{
 				Name:   "status",
 				Usage:  "Get your Radarr instance status",
 				Action: getStatus,
@@ -141,12 +159,16 @@ func listMovies(*cli.Context) error {
 }
 
 func getMovie(c *cli.Context) error {
+	movieID := c.Args().First()
+	if movieID == "" {
+		return errors.New("Please specify a movie ID")
+	}
+
 	client, err := initRadarrClient()
 	if err != nil {
 		return err
 	}
 
-	movieID := c.Args().First()
 	m, err := strconv.Atoi(movieID)
 	if err != nil {
 		return err
@@ -214,5 +236,37 @@ func upcoming(c *cli.Context) error {
 	}
 
 	fmt.Println(string(r))
+	return nil
+}
+
+func deleteMovie(c *cli.Context) error {
+	movieID := c.Args().First()
+	if movieID == "" {
+		return errors.New("Please specify a movie ID")
+	}
+
+	client, err := initRadarrClient()
+	if err != nil {
+		return err
+	}
+
+	m, err := strconv.Atoi(movieID)
+	if err != nil {
+		return err
+	}
+
+	radarrMovie, err := client.Movies.Get(m)
+	if err != nil {
+		return err
+	}
+
+	err = client.Movies.Delete(radarrMovie, &radarr.DeleteMovieOptions{
+		AddExclusion: false,
+		DeleteFiles:  true,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Successfully deleted")
 	return nil
 }

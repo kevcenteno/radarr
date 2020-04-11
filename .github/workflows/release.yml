@@ -80,6 +80,7 @@ jobs:
     needs:
       - lint
       - test
+      - install
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.14
@@ -94,12 +95,15 @@ jobs:
       - name: Setup gox
         run: go get github.com/mitchellh/gox
 
+      - name: Go install
+        run: go install .
+
       - name: Build
         run: |
           REPO_ROOT=$(git rev-parse --show-toplevel)
           export PATH=$PATH:$(go env GOPATH)/bin
           export VERSION=$(git describe --tags --exact-match 2>/dev/null)
-          (cd ./cmd/radarr; gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}")
+          (cd ./cmd/radarr; GO111MODULE=off gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}")
 
       - name: Upload them as artifacts
         uses: actions/upload-artifact@v1
