@@ -123,7 +123,6 @@ func (s *HistoryService) paginate(page int) (*History, error) {
 	q := request.URL.Query()
 	q.Add("page", strconv.Itoa(page))
 	q.Add("pageSize", "50")
-	q.Add("apikey", s.s.apiKey)
 
 	request.URL.RawQuery = q.Encode()
 	response, err := s.s.client.Do(request)

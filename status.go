@@ -43,7 +43,7 @@ func newSystemStatusService(s *Service) *SystemStatusService {
 
 // Get https://github.com/Radarr/Radarr/wiki/API:System-Status#get
 func (s *SystemStatusService) Get() (*SystemStatus, error) {
-	statusURL := fmt.Sprintf("%s/api%s?apikey=%s", s.s.url, statusURI, s.s.apiKey)
+	statusURL := fmt.Sprintf("%s/api%s", s.s.url, statusURI)
 	response, err := s.s.client.Get(statusURL)
 	if err != nil {
 		return nil, err

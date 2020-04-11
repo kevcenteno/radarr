@@ -26,16 +26,21 @@ const logRespMsg = `API Response Details:
 // Custom http transport to log request
 type transport struct {
 	transport http.RoundTripper
+	apiKey    string
 }
 
-func newTransport() *transport {
-	return &transport{transport: http.DefaultTransport}
+func newTransport(apiKey string) *transport {
+	return &transport{
+		apiKey:    apiKey,
+		transport: http.DefaultTransport,
+	}
 }
 
 // Custom RoundTrip method to log every requests
 func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", "SkYNewZ-Go-http-client/1.1")
 	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+	req.Header.Add("X-Api-Key", t.apiKey)
 
 	// Print request
 	if isDebugLevel() {

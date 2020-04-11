@@ -10,7 +10,7 @@ import (
 )
 
 func Test_newHistoryService(t *testing.T) {
-	s := &Service{client: http.DefaultClient, apiKey: internal.DummyAPIKey, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
 	tests := []struct {
 		name    string
 		service *Service
@@ -35,12 +35,6 @@ func TestHistoryService_Get(t *testing.T) {
 	goodService := newHistoryService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newHistoryService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	var expectedResponse *History
@@ -55,12 +49,6 @@ func TestHistoryService_Get(t *testing.T) {
 		want    *Records
 		wantErr bool
 	}{
-		{
-			name:    "Bad API key",
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
-		},
 		{
 			name:    "Should return expected response",
 			service: goodService.s,
@@ -89,12 +77,6 @@ func TestHistoryService_paginate(t *testing.T) {
 	goodService := newHistoryService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newHistoryService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	var expectedResponse *History
@@ -114,13 +96,6 @@ func TestHistoryService_paginate(t *testing.T) {
 		want    *History
 		wantErr bool
 	}{
-		{
-			name:    "Bad API key",
-			args:    args{1},
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
-		},
 		{
 			name:    "Should return expected response",
 			args:    args{1},

@@ -21,15 +21,19 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 		return nil, errors.New("Please specify a valid URL")
 	}
 
+	if apiKey == "" {
+		return nil, errors.New("Please specify your Radarr API key")
+	}
+
 	// if client not specified, defaulting to default http client
 	if client == nil {
 		d := http.DefaultClient
-		d.Transport = newTransport()
+		d.Transport = newTransport(apiKey)
 		d.Timeout = time.Second * 10
 		client = d
 	}
 
-	s := &Service{client: client, url: valid.String(), apiKey: apiKey}
+	s := &Service{client: client, url: valid.String()}
 	s.Movies = newMovieService(s)
 	s.SystemStatus = newSystemStatusService(s)
 	s.Diskspace = newDiskspaceService(s)
@@ -43,7 +47,6 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 type Service struct {
 	client HTTPClientInterface
 	url    string // Radarr base URL
-	apiKey string
 
 	// https://github.com/Radarr/Radarr/wiki/API:Calendar
 	// https://github.com/Radarr/Radarr/wiki/API:Movie

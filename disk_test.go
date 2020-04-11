@@ -13,7 +13,7 @@ func Test_newDiskspaceService(t *testing.T) {
 		s *Service
 	}
 
-	s := &Service{client: http.DefaultClient, apiKey: internal.DummyAPIKey, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
 	tests := []struct {
 		name string
 		args args
@@ -39,8 +39,7 @@ func TestDiskspaceService_Get(t *testing.T) {
 		s *Service
 	}
 
-	var classicService *Service = &Service{client: internal.DummyHTTPClient, url: internal.DummyURL, apiKey: internal.DummyAPIKey}
-	var badAPIKeyService *Service = &Service{client: internal.DummyHTTPClient, url: internal.DummyURL, apiKey: "bad"}
+	var classicService *Service = &Service{client: internal.DummyHTTPClient, url: internal.DummyURL}
 
 	var exepectedResponse *Diskspaces = &Diskspaces{
 		Diskspace{
@@ -68,12 +67,6 @@ func TestDiskspaceService_Get(t *testing.T) {
 			fields:  fields{classicService},
 			wantErr: false,
 			want:    exepectedResponse,
-		},
-		{
-			name:    "Bad API Key",
-			wantErr: true,
-			fields:  fields{badAPIKeyService},
-			want:    nil,
 		},
 	}
 	for _, tt := range tests {

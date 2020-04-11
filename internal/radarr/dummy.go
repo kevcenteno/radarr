@@ -258,12 +258,6 @@ var DummyHistoryResponse string = `
 var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", DummyMovieResponse, DummyMovieResponse)
 var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", DummyMovieResponse)
 
-var dummyUnauthorizedResponse *http.Response = &http.Response{
-	StatusCode: http.StatusUnauthorized,
-	Status:     http.StatusText(http.StatusUnauthorized),
-	Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error": "Unauthorized"}`)),
-}
-
 var dummyNotFoundResponse *http.Response = &http.Response{
 	StatusCode: http.StatusNotFound,
 	Status:     http.StatusText(http.StatusNotFound),
@@ -272,8 +266,8 @@ var dummyNotFoundResponse *http.Response = &http.Response{
 
 var dummyEmptyListResponse string = `[]`
 
-var dummyStartDate string = url.QueryEscape("2019-11-19T23:00:00Z")
-var dummyEndDate string = url.QueryEscape("2019-11-20T23:00:00Z")
+var dummyStartDate string = "2019-11-19T23:00:00Z"
+var dummyEndDate string = "2019-11-20T23:00:00Z"
 
 var dummyGenericResponse = &http.Response{
 	StatusCode: http.StatusOK,
@@ -336,38 +330,83 @@ func init() {
 
 // Do mocked http client Do function
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
-	// Test valid API key
-	params, _ := url.ParseQuery(req.URL.RawQuery)
-	key := params.Get("apikey")
-
-	if key != DummyAPIKey {
-		return dummyUnauthorizedResponse, nil
-	}
+	// Query params
+	params := req.URL.Query()
 
 	if req.Method == http.MethodGet {
-		switch req.URL.String() {
-		case fmt.Sprintf("%s/api%s?apikey=%s&page=1&pageSize=50", DummyURL, "/history", DummyAPIKey):
+		// GET /history
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s", DummyURL, "/history")) {
+			page := params.Get("page")
+			pageSize := params.Get("pageSize")
+
 			// Return one record on page 1
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Status:     http.StatusText(http.StatusOK),
-				Body:       ioutil.NopCloser(bytes.NewBufferString(DummyHistoryResponse)),
-			}, nil
+			if page == "1" && pageSize == "50" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(DummyHistoryResponse)),
+				}, nil
+			}
 
-		case fmt.Sprintf("%s/api%s?apikey=%s&page=3&pageSize=50", DummyURL, "/history", DummyAPIKey):
 			// Return bad JSON for page 3
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Status:     http.StatusText(http.StatusOK),
-				Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
-			}, nil
+			if page == "3" && pageSize == "50" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
+				}, nil
+			}
 
-		case fmt.Sprintf("%s/api%s?apikey=%s&page=4&pageSize=50", DummyURL, "/history", DummyAPIKey):
 			// Return error for page 4
-			return nil, errors.New("Oooops")
-		default:
-			return dummyNotFoundResponse, nil
+			if page == "4" && pageSize == "50" {
+				return nil, errors.New("Oooops")
+			}
 		}
+
+		// GET /calendar
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s", DummyURL, "/calendar")) {
+			start := params.Get("start")
+			end := params.Get("end")
+
+			// Upcoming movies without filters. Return 0 movies
+			if start == "" && end == "" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
+				}, nil
+			}
+
+			// Upcoming movies with start filter. Returns 2 movies
+			if start == dummyStartDate && end == "" {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
+				}, nil
+			}
+
+			// Upcoming movies with end filter. Returns 0 movies
+			if start == "" && end == dummyEndDate {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
+				}, nil
+			}
+
+			// Upcoming movies with start filter and end filter. Return 1 movies
+			if start == dummyStartDate && end == dummyEndDate {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
+				}, nil
+			}
+		}
+
+		// Else, return 404
+		return dummyNotFoundResponse, nil
 	}
 
 	if req.Method == http.MethodDelete {
@@ -425,6 +464,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return dummyNotFoundResponse, nil
 	}
 
+	// Bad method, return error
 	return nil, &url.Error{
 		Op:  req.Method,
 		URL: req.URL.String(),
@@ -432,19 +472,10 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	}
 }
 
-// Get mock GET requests
+// Get Mock .Get() http client method
 func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
-	// Test valid API key
-	t, _ := url.Parse(targetURL)
-	params, _ := url.ParseQuery(t.RawQuery)
-	key := params.Get("apikey")
-
-	if key != DummyAPIKey {
-		return dummyUnauthorizedResponse, nil
-	}
-
 	switch targetURL {
-	case fmt.Sprintf("%s/api%s/%d?apikey=%s", DummyURL, "/movie", 217, DummyAPIKey):
+	case fmt.Sprintf("%s/api%s/%d", DummyURL, "/movie", 217):
 		// Get one movie
 		return &http.Response{
 			StatusCode: http.StatusOK,
@@ -452,7 +483,7 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyMovieResponse)),
 		}, nil
 
-	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/movie", DummyAPIKey):
+	case fmt.Sprintf("%s/api%s", DummyURL, "/movie"):
 		// List of movies
 		return &http.Response{
 			StatusCode: http.StatusOK,
@@ -460,54 +491,14 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
 		}, nil
 
-	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/calendar", DummyAPIKey):
-		// Upcoming movies without filters. Return 0 movies
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
-		}, nil
-
-	case fmt.Sprintf("%s/api%s?apikey=%s&start=%s", DummyURL, "/calendar", DummyAPIKey, dummyStartDate):
-		// Upcoming movies with start filter. Returns 2 movies
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyMoviesResponse)),
-		}, nil
-
-	case fmt.Sprintf("%s/api%s?apikey=%s&end=%s", DummyURL, "/calendar", DummyAPIKey, dummyEndDate):
-		// Upcoming movies with end filter. Returns 0 movies
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
-		}, nil
-
-	case fmt.Sprintf("%s/api%s?apikey=%s&start=%s&end=%s", DummyURL, "/calendar", DummyAPIKey, dummyStartDate, dummyEndDate):
-		// Upcoming movies with start filter and end filter. Return 1 movies
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
-		}, nil
-
-	case fmt.Sprintf("%s/api%s?apikey=%s&end=%s&start=%s", DummyURL, "/calendar", DummyAPIKey, dummyEndDate, dummyStartDate):
-		// Upcoming movies with start filter and end filter. Return 1 movies. Same as abose but with reverse parameters
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
-		}, nil
-
-	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/system/status", DummyAPIKey):
+	case fmt.Sprintf("%s/api%s", DummyURL, "/system/status"):
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummySystemStatusResponse)),
 		}, nil
 
-	case fmt.Sprintf("%s/api%s?apikey=%s", DummyURL, "/diskspace", DummyAPIKey):
+	case fmt.Sprintf("%s/api%s", DummyURL, "/diskspace"):
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),

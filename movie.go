@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -152,7 +151,7 @@ type UpcomingOptions struct {
 // Get Returns all Movies in your collection
 // https://github.com/Radarr/Radarr/wiki/API:Movie#getid
 func (m *MovieService) Get(movieID int) (*Movie, error) {
-	movieURL := fmt.Sprintf("%s/api%s/%d?apikey=%s", m.s.url, movieURI, movieID, m.s.apiKey)
+	movieURL := fmt.Sprintf("%s/api%s/%d", m.s.url, movieURI, movieID)
 	response, err := m.s.client.Get(movieURL)
 	if err != nil {
 		return nil, err
@@ -176,7 +175,7 @@ func (m *MovieService) Get(movieID int) (*Movie, error) {
 // List Returns the movie with the matching ID or eerror if no matching movie is found
 // https://github.com/Radarr/Radarr/wiki/API:Movie#get
 func (m *MovieService) List() (*Movies, error) {
-	moviesURL := fmt.Sprintf("%s/api%s?apikey=%s", m.s.url, movieURI, m.s.apiKey)
+	moviesURL := fmt.Sprintf("%s/api%s", m.s.url, movieURI)
 	response, err := m.s.client.Get(moviesURL)
 	if err != nil {
 		return nil, err
@@ -201,7 +200,10 @@ func (m *MovieService) List() (*Movies, error) {
 // Its match the physicalRelease attribute
 // https://github.com/Radarr/Radarr/wiki/API:Calendar#get
 func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
-	params := url.Values{}
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api%s", m.s.url, upcomingURI), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	// If option is provided, incule them in the request
 	if len(opts) > 0 {
@@ -213,20 +215,22 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 			}
 		}
 
+		params := req.URL.Query()
+
 		// If start date is defined
 		if opts[0].Start != nil {
 			params.Add("start", opts[0].Start.Format(time.RFC3339))
+			req.URL.RawQuery = params.Encode()
 		}
 
 		// If end date is defined
 		if opts[0].End != nil {
 			params.Add("end", opts[0].End.Format(time.RFC3339))
+			req.URL.RawQuery = params.Encode()
 		}
 	}
 
-	params.Add("apikey", m.s.apiKey)
-	upcomingURL := fmt.Sprintf("%s/api%s?%s", m.s.url, upcomingURI, params.Encode())
-	response, err := m.s.client.Get(upcomingURL)
+	response, err := m.s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -254,17 +258,15 @@ func (m *MovieService) Delete(movie *Movie, opts ...*DeleteMovieOptions) error {
 		return err
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", m.s.apiKey)
-
 	// If option given, parse and send to request
 	if len(opts) > 0 {
 		d := opts[0]
+		params := req.URL.Query()
 		params.Add("deleteFiles", strconv.FormatBool(d.DeleteFiles))
 		params.Add("addExclusion", strconv.FormatBool(d.AddExclusion))
+		req.URL.RawQuery = params.Encode()
 	}
 
-	req.URL.RawQuery = params.Encode()
 	resp, err := m.s.client.Do(req)
 	if err != nil {
 		return err

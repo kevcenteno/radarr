@@ -97,6 +97,7 @@ func TestTransport_RoundTrip(t *testing.T) {
 	// Create a new Transport to override default one
 	trans := transport{
 		transport: mockedTransports.MockedTransport1,
+		apiKey:    internal.DummyAPIKey,
 	}
 
 	// Execute function without DEBUG
@@ -122,6 +123,11 @@ func TestTransport_RoundTrip(t *testing.T) {
 			title:    "Request header should contain correct Content-Type",
 			expected: "application/json; charset=utf-8",
 			got:      exepectedRequest.Header.Get("Content-Type"),
+		},
+		{
+			title:    "Request header should contain API key",
+			expected: internal.DummyAPIKey,
+			got:      exepectedRequest.Header.Get("X-Api-Key"),
 		},
 		{
 			title:    fmt.Sprintf("%s is NOT set: nothing should be print", envLog),
@@ -174,15 +180,17 @@ func Test_newTransport(t *testing.T) {
 	tests := []struct {
 		name string
 		want *transport
+		key  string
 	}{
 		{
 			name: "Constructor",
-			want: &transport{transport: http.DefaultTransport},
+			want: &transport{transport: http.DefaultTransport, apiKey: "foo"},
+			key:  "foo",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := newTransport(); !reflect.DeepEqual(got, tt.want) {
+			if got := newTransport(tt.key); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("newTransport() = %v, want %v", got, tt.want)
 			}
 		})

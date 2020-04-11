@@ -13,17 +13,13 @@ func Test_newSystemStatusService(t *testing.T) {
 	type args struct {
 		s *Service
 	}
-	s := &Service{client: http.DefaultClient, apiKey: internal.DummyAPIKey, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
 	tests := []struct {
 		name string
 		args args
 		want *SystemStatusService
 	}{
-		struct {
-			name string
-			args args
-			want *SystemStatusService
-		}{
+		{
 			name: "Constructor",
 			args: args{s},
 			want: &SystemStatusService{s},
@@ -68,12 +64,6 @@ func TestSystemStatusService_Get(t *testing.T) {
 	goodService := newSystemStatusService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newSystemStatusService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	tests := []struct {
@@ -87,12 +77,6 @@ func TestSystemStatusService_Get(t *testing.T) {
 			service: goodService.s,
 			want:    expectedStatus,
 			wantErr: false,
-		},
-		{
-			name:    "Bad API key",
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

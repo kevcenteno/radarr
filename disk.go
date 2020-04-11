@@ -27,7 +27,7 @@ func newDiskspaceService(s *Service) *DiskspaceService {
 
 // Get return Radarr disk space info
 func (s *DiskspaceService) Get() (*Diskspaces, error) {
-	diskspaceURL := fmt.Sprintf("%s/api%s?apikey=%s", s.s.url, diskspaceURI, s.s.apiKey)
+	diskspaceURL := fmt.Sprintf("%s/api%s", s.s.url, diskspaceURI)
 	response, err := s.s.client.Get(diskspaceURL)
 	if err != nil {
 		return nil, err

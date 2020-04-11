@@ -12,7 +12,7 @@ import (
 )
 
 func Test_newMovieService(t *testing.T) {
-	s := &Service{client: http.DefaultClient, apiKey: internal.DummyAPIKey, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
 
 	tests := []struct {
 		name    string
@@ -44,12 +44,6 @@ func TestMovieService_Get(t *testing.T) {
 	goodService := newMovieService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	tests := []struct {
@@ -65,13 +59,6 @@ func TestMovieService_Get(t *testing.T) {
 			service: goodService.s,
 			want:    expecedMovie,
 			wantErr: false,
-		},
-		{
-			name:    "Bad API key",
-			movieID: 217,
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
 		},
 	}
 
@@ -102,12 +89,6 @@ func TestMovieService_List(t *testing.T) {
 	goodService := newMovieService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	tests := []struct {
@@ -121,12 +102,6 @@ func TestMovieService_List(t *testing.T) {
 			service: goodService.s,
 			want:    expecedMovies,
 			wantErr: false,
-		},
-		{
-			name:    "Bad API key",
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
 		},
 	}
 
@@ -161,12 +136,6 @@ func TestMovieService_Upcoming(t *testing.T) {
 	goodService := newMovieService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	tests := []struct {
@@ -176,13 +145,6 @@ func TestMovieService_Upcoming(t *testing.T) {
 		want    *Movies
 		wantErr bool
 	}{
-		{
-			name:    "Bad API key",
-			opts:    nil,
-			service: badService.s,
-			want:    nil,
-			wantErr: true,
-		},
 		{
 			name:    "Without filter",
 			opts:    nil,
@@ -263,12 +225,6 @@ func TestMovieService_Delete(t *testing.T) {
 	goodService := newMovieService(&Service{
 		client: internal.DummyHTTPClient,
 		url:    internal.DummyURL,
-		apiKey: internal.DummyAPIKey,
-	})
-	badService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
-		apiKey: "foo",
 	})
 
 	tests := []struct {
@@ -277,12 +233,6 @@ func TestMovieService_Delete(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{
-			name:    "Bad API key",
-			service: badService.s,
-			args:    args{movie: dummyMovie},
-			wantErr: true,
-		},
 		{
 			name:    "Delete without option",
 			service: goodService.s,
