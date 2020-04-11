@@ -19,11 +19,7 @@ func Test_newDiskspaceService(t *testing.T) {
 		args args
 		want *DiskspaceService
 	}{
-		struct {
-			name string
-			args args
-			want *DiskspaceService
-		}{
+		{
 			name: "Constructor",
 			args: args{s},
 			want: &DiskspaceService{s},
@@ -67,23 +63,13 @@ func TestDiskspaceService_Get(t *testing.T) {
 		want    *Diskspaces
 		wantErr bool
 	}{
-		struct {
-			name    string
-			fields  fields
-			want    *Diskspaces
-			wantErr bool
-		}{
+		{
 			name:    "Diskspace lengh should be 2",
 			fields:  fields{classicService},
 			wantErr: false,
 			want:    exepectedResponse,
 		},
-		struct {
-			name    string
-			fields  fields
-			want    *Diskspaces
-			wantErr bool
-		}{
+		{
 			name:    "Bad API Key",
 			wantErr: true,
 			fields:  fields{badAPIKeyService},

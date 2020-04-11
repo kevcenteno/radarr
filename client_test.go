@@ -39,33 +39,18 @@ func TestNew(t *testing.T) {
 		want    *Service
 		wantErr bool
 	}{
-		struct {
-			name    string
-			args    args
-			want    *Service
-			wantErr bool
-		}{
+		{
 			name:    "Error because of bad URL",
 			args:    args{apiKey: internal.DummyAPIKey, radarrURL: "bad-url", client: internal.DummyHTTPClient},
 			wantErr: true,
 		},
-		struct {
-			name    string
-			args    args
-			want    *Service
-			wantErr bool
-		}{
+		{
 			name:    "Good service",
 			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: internal.DummyHTTPClient},
 			wantErr: false,
 			want:    serviceWithCustomHTTPClient,
 		},
-		struct {
-			name    string
-			args    args
-			want    *Service
-			wantErr bool
-		}{
+		{
 			name:    "Default HTTP Client",
 			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: nil},
 			wantErr: false,

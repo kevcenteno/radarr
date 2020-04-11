@@ -21,17 +21,17 @@ type test struct {
 func TestLogRequestMessage(t *testing.T) {
 	m := fmt.Sprintf(logReqMsg, "foo")
 	cases := []test{
-		test{
+		{
 			title:    "Message should contain 'foo'",
 			expected: true,
 			got:      strings.Contains(m, "foo"),
 		},
-		test{
+		{
 			title:    "Message should contain 'API Request Details:'",
 			expected: true,
 			got:      strings.Contains(m, "API Request Details:"),
 		},
-		test{
+		{
 			title:    "Message should contain '[ REQUEST ]'",
 			expected: true,
 			got:      strings.Contains(m, "[ REQUEST ]"),
@@ -50,17 +50,17 @@ func TestLogRequestMessage(t *testing.T) {
 func TestLogResponseMessage(t *testing.T) {
 	m := fmt.Sprintf(logRespMsg, "foo")
 	cases := []test{
-		test{
+		{
 			title:    "Message should contain 'foo'",
 			expected: true,
 			got:      strings.Contains(m, "foo"),
 		},
-		test{
+		{
 			title:    "Message should contain 'API Response Details:'",
 			expected: true,
 			got:      strings.Contains(m, "API Response Details:"),
 		},
-		test{
+		{
 			title:    "Message should contain '[ RESPONSE ]'",
 			expected: true,
 			got:      strings.Contains(m, "[ RESPONSE ]"),
@@ -108,27 +108,27 @@ func TestTransport_RoundTrip(t *testing.T) {
 	})
 
 	cases := []test{
-		test{
+		{
 			title:    "Error should be nil",
 			expected: nil,
 			got:      err,
 		},
-		test{
+		{
 			title:    "Request header should contain correct User-Agent",
 			expected: "SkYNewZ-Go-http-client/1.1",
 			got:      exepectedRequest.Header.Get("User-Agent"),
 		},
-		test{
+		{
 			title:    "Request header should contain correct Content-Type",
 			expected: "application/json; charset=utf-8",
 			got:      exepectedRequest.Header.Get("Content-Type"),
 		},
-		test{
+		{
 			title:    fmt.Sprintf("%s is NOT set: nothing should be print", envLog),
 			expected: "",
 			got:      out,
 		},
-		test{
+		{
 			title:    "Response should be the same",
 			expected: mockedTransports.MockedTransport1.MockedResponse,
 			got:      response,

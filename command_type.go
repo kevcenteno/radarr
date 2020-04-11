@@ -33,13 +33,13 @@ type filter struct {
 // If you have a better idea, please tell me
 // I've been looking for every possible solution for seven hours... :'(
 var availableFilter [7]filter = [7]filter{
-	filter{Key: "monitored", Value: true},
-	filter{Key: "monitored", Value: false},
-	filter{Key: "all", Value: "all"},
-	filter{Key: "status", Value: "available"},
-	filter{Key: "status", Value: "released"},
-	filter{Key: "status", Value: "inCinemas"},
-	filter{Key: "status", Value: "announced"},
+	{Key: "monitored", Value: true},
+	{Key: "monitored", Value: false},
+	{Key: "all", Value: "all"},
+	{Key: "status", Value: "available"},
+	{Key: "status", Value: "released"},
+	{Key: "status", Value: "inCinemas"},
+	{Key: "status", Value: "announced"},
 }
 
 // Filter filtering options when using MissingMoviesSearch and CutOffUnmetMoviesSearchCommand

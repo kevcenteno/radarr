@@ -11,11 +11,7 @@ func TestFilter_get(t *testing.T) {
 		f    Filter
 		want *filter
 	}{
-		struct {
-			name string
-			f    Filter
-			want *filter
-		}{
+		{
 			name: "FilterByMonitored",
 			f:    FilterByMonitored,
 			want: &availableFilter[FilterByMonitored],
@@ -66,20 +62,12 @@ func TestImportMode_get(t *testing.T) {
 		i    ImportMode
 		want string
 	}{
-		struct {
-			name string
-			i    ImportMode
-			want string
-		}{
+		{
 			name: "Move",
 			i:    Move,
 			want: availableImportMode[Move],
 		},
-		struct {
-			name string
-			i    ImportMode
-			want string
-		}{
+		{
 			name: "Copy",
 			i:    Copy,
 			want: availableImportMode[Copy],

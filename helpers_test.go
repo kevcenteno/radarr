@@ -67,11 +67,11 @@ func Test_parseRadarrResponse(t *testing.T) {
 
 	// Test 'error' and 'message' key
 	keys := map[string]map[string]string{
-		"error": map[string]string{
+		"error": {
 			"response":         `{"error": "Unauthorized"}`,
 			"expected_message": "Unauthorized",
 		},
-		"message": map[string]string{
+		"message": {
 			"response":         `{"message": "NotFound"}`,
 			"expected_message": "NotFound",
 		},

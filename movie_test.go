@@ -198,7 +198,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 			opts: func() []*UpcomingOptions {
 				s := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.Local)
 				e := time.Date(2010, time.January, 1, 0, 0, 0, 0, time.Local)
-				return []*UpcomingOptions{&UpcomingOptions{Start: &s, End: &e}}
+				return []*UpcomingOptions{{Start: &s, End: &e}}
 			}(),
 		},
 		{
@@ -208,7 +208,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 			want:    expecedMovies,
 			opts: func() []*UpcomingOptions {
 				s := time.Date(2019, time.November, 19, 23, 0, 0, 0, time.UTC)
-				return []*UpcomingOptions{&UpcomingOptions{Start: &s}}
+				return []*UpcomingOptions{{Start: &s}}
 			}(),
 		},
 		{
@@ -218,7 +218,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 			wantErr: false,
 			opts: func() []*UpcomingOptions {
 				e := time.Date(2019, time.November, 20, 23, 0, 0, 0, time.UTC)
-				return []*UpcomingOptions{&UpcomingOptions{End: &e}}
+				return []*UpcomingOptions{{End: &e}}
 			}(),
 		},
 		{
@@ -229,7 +229,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 			opts: func() []*UpcomingOptions {
 				start := time.Date(2019, time.November, 19, 23, 0, 0, 0, time.UTC)
 				end := time.Date(2019, time.November, 20, 23, 0, 0, 0, time.UTC)
-				return []*UpcomingOptions{&UpcomingOptions{Start: &start, End: &end}}
+				return []*UpcomingOptions{{Start: &start, End: &end}}
 			}(),
 		},
 	}

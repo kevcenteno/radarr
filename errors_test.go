@@ -14,11 +14,7 @@ func TestError_Error(t *testing.T) {
 		fields fields
 		want   string
 	}{
-		struct {
-			name   string
-			fields fields
-			want   string
-		}{
+		{
 			fields: fields{Code: 1234, Message: "foo"},
 			want:   "Radarr error: code 1234, message 'foo'",
 		},
