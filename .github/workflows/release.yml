@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Go install
-        run: go install .
+        run: go install ./...
 
   build:
     name: Build
@@ -96,14 +96,14 @@ jobs:
         run: go get github.com/mitchellh/gox
 
       - name: Go install
-        run: go install .
+        run: go install ./...
 
-      - name: Build
+      - name: Create binaries
         run: |
           REPO_ROOT=$(git rev-parse --show-toplevel)
           export PATH=$PATH:$(go env GOPATH)/bin
           export VERSION=$(git describe --tags --exact-match 2>/dev/null)
-          (cd ./cmd/radarr; GO111MODULE=off gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}")
+          gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}" ./...
 
       - name: Upload them as artifacts
         uses: actions/upload-artifact@v1
