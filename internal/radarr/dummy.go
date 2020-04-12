@@ -1,4 +1,3 @@
-// Package radarr here only exist for testing
 package radarr
 
 import (
@@ -380,6 +379,63 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 					StatusCode: http.StatusOK,
 					Status:     http.StatusText(http.StatusOK),
 					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
+				}, nil
+			}
+		}
+
+		// GET /movie/lookup/imdb
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s", DummyURL, "/movie/lookup/imdb")) {
+			imdbID := params.Get("imdbId")
+			switch imdbID {
+			case "tt3778644":
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(DummyMovieResponse)),
+				}, nil
+			case "1":
+				return &http.Response{
+					StatusCode: http.StatusInternalServerError,
+					Status:     http.StatusText(http.StatusInternalServerError),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{"message": "Movie with IMDBId 1 was not found, it may have been removed from TMDb."}`)),
+				}, nil
+			}
+		}
+
+		// GET /movie/lookup/tmdb
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s", DummyURL, "/movie/lookup/tmdb")) {
+			tmdbID := params.Get("tmdbId")
+			switch tmdbID {
+			case "348350":
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(DummyMovieResponse)),
+				}, nil
+			case "1":
+				return &http.Response{
+					StatusCode: http.StatusInternalServerError,
+					Status:     http.StatusText(http.StatusInternalServerError),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(`{"message": "Movie with tmdbId 1 was not found, it may have been removed from TMDb."}`)),
+				}, nil
+			}
+		}
+
+		// GET /movie/lookup
+		if strings.Contains(req.URL.String(), fmt.Sprintf("%s/api%s", DummyURL, "/movie/lookup")) {
+			term := params.Get("term")
+			switch term {
+			case "star wars":
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyUpcomingWithBothFilterResponse)),
+				}, nil
+			case "this film does not exist either":
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     http.StatusText(http.StatusOK),
+					Body:       ioutil.NopCloser(bytes.NewBufferString(dummyEmptyListResponse)),
 				}, nil
 			}
 		}

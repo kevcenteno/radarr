@@ -23,7 +23,7 @@ Here are the currently supported endpoints:
   - [ ] Adds a new movie to your collection
   - [ ] Update an existing movie
   - [x] Delete the movie with the given ID
-- [ ] Movie Lookup
+- [x] Movie Lookup
 - [ ] Queue
 - [x] List Exclusions
 - [x] System-Status

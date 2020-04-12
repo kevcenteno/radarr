@@ -22,7 +22,10 @@ func Test_newMovieService(t *testing.T) {
 		{
 			name:    "Constructor",
 			service: s,
-			want:    &MovieService{s},
+			want: &MovieService{
+				s:      s,
+				Lookup: newLookupService(s),
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -66,7 +69,7 @@ func TestMovieService_Get(t *testing.T) {
 	var got *Movie
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m = &MovieService{tt.service}
+			m = &MovieService{tt.service, nil}
 			got, err = m.Get(tt.movieID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MovieService.Get() error = %v, wantErr %v", err, tt.wantErr)
@@ -107,7 +110,7 @@ func TestMovieService_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MovieService{tt.service}
+			m := &MovieService{tt.service, nil}
 			got, err := m.List()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MovieService.List() error = %v, wantErr %v", err, tt.wantErr)
@@ -197,7 +200,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MovieService{tt.service}
+			m := &MovieService{tt.service, nil}
 			got, err := m.Upcoming(tt.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MovieService.Upcoming() error = %v, wantErr %v", err, tt.wantErr)

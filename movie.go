@@ -146,11 +146,15 @@ type DeleteMovieOptions struct {
 
 // MovieService contains Radarr movies operations
 type MovieService struct {
-	s *Service
+	s      *Service
+	Lookup *LookupService
 }
 
 func newMovieService(s *Service) *MovieService {
-	return &MovieService{s}
+	return &MovieService{
+		s:      s,
+		Lookup: newLookupService(s),
+	}
 }
 
 // UpcomingOptions describe period to search upcoming movies with
