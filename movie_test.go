@@ -35,8 +35,8 @@ func Test_newMovieService(t *testing.T) {
 }
 
 func TestMovieService_Get(t *testing.T) {
-	var expecedMovie *Movie
-	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &expecedMovie)
+	var expectedMovie *Movie
+	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
 	if err != nil {
 		t.Errorf("json.Unmarshal() error: %s", err.Error())
 	}
@@ -57,7 +57,7 @@ func TestMovieService_Get(t *testing.T) {
 			name:    "Same response",
 			movieID: 217,
 			service: goodService.s,
-			want:    expecedMovie,
+			want:    expectedMovie,
 			wantErr: false,
 		},
 	}
@@ -80,8 +80,8 @@ func TestMovieService_Get(t *testing.T) {
 }
 
 func TestMovieService_List(t *testing.T) {
-	var expecedMovies *Movies
-	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expecedMovies)
+	var expectedMovies Movies
+	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expectedMovies)
 	if err != nil {
 		t.Errorf("json.Unmarshal() error: %s", err.Error())
 	}
@@ -94,13 +94,13 @@ func TestMovieService_List(t *testing.T) {
 	tests := []struct {
 		name    string
 		service *Service
-		want    *Movies
+		want    Movies
 		wantErr bool
 	}{
 		{
 			name:    "Same response",
 			service: goodService.s,
-			want:    expecedMovies,
+			want:    expectedMovies,
 			wantErr: false,
 		},
 	}
@@ -121,14 +121,14 @@ func TestMovieService_List(t *testing.T) {
 }
 
 func TestMovieService_Upcoming(t *testing.T) {
-	var expecedMovies *Movies
-	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expecedMovies)
+	var expectedMovies Movies
+	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expectedMovies)
 	if err != nil {
 		t.Errorf("json.Unmarshal() error: %s", err.Error())
 	}
 
-	var expecedMovie *Movie
-	err = json.Unmarshal([]byte(internal.DummyMovieResponse), &expecedMovie)
+	var expectedMovie *Movie
+	err = json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
 	if err != nil {
 		t.Errorf("json.Unmarshal() error: %s", err.Error())
 	}
@@ -142,14 +142,14 @@ func TestMovieService_Upcoming(t *testing.T) {
 		name    string
 		service *Service
 		opts    []*UpcomingOptions
-		want    *Movies
+		want    Movies
 		wantErr bool
 	}{
 		{
 			name:    "Without filter",
 			opts:    nil,
 			service: goodService.s,
-			want:    &Movies{},
+			want:    Movies{},
 			wantErr: false,
 		},
 		{
@@ -167,7 +167,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 			name:    "Start filter",
 			service: goodService.s,
 			wantErr: false,
-			want:    expecedMovies,
+			want:    expectedMovies,
 			opts: func() []*UpcomingOptions {
 				s := time.Date(2019, time.November, 19, 23, 0, 0, 0, time.UTC)
 				return []*UpcomingOptions{{Start: &s}}
@@ -176,7 +176,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 		{
 			name:    "End filter",
 			service: goodService.s,
-			want:    &Movies{},
+			want:    Movies{},
 			wantErr: false,
 			opts: func() []*UpcomingOptions {
 				e := time.Date(2019, time.November, 20, 23, 0, 0, 0, time.UTC)
@@ -186,7 +186,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 		{
 			name:    "Both filters",
 			service: goodService.s,
-			want:    &Movies{*expecedMovie},
+			want:    Movies{expectedMovie},
 			wantErr: false,
 			opts: func() []*UpcomingOptions {
 				start := time.Date(2019, time.November, 19, 23, 0, 0, 0, time.UTC)

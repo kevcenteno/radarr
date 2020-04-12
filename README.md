@@ -22,7 +22,7 @@ Here are the currently supported endpoints:
   - [x] Returns the movie with the matching ID or 404 if no matching movie is found
   - [ ] Adds a new movie to your collection
   - [ ] Update an existing movie
-  - [ ] Delete the movie with the given ID
+  - [x] Delete the movie with the given ID
 - [ ] Movie Lookup
 - [ ] Queue
 - [ ] List Exclusions

@@ -122,7 +122,7 @@ type Quality struct {
 }
 
 // Movies multiple Radarr movies
-type Movies []Movie
+type Movies []*Movie
 
 // DeleteMovieOptions optionnal option while deleting movie
 type DeleteMovieOptions struct {
@@ -174,7 +174,7 @@ func (m *MovieService) Get(movieID int) (*Movie, error) {
 
 // List Returns the movie with the matching ID or eerror if no matching movie is found
 // https://github.com/Radarr/Radarr/wiki/API:Movie#get
-func (m *MovieService) List() (*Movies, error) {
+func (m *MovieService) List() (Movies, error) {
 	moviesURL := fmt.Sprintf("%s/api%s", m.s.url, movieURI)
 	response, err := m.s.client.Get(moviesURL)
 	if err != nil {
@@ -193,13 +193,13 @@ func (m *MovieService) List() (*Movies, error) {
 	}
 
 	_ = response.Body.Close()
-	return &movies, nil
+	return movies, nil
 }
 
 // Upcoming Gets upcoming movies from your Radarr library, if start/end are not supplied movies airing today and tomorrow will be returned
 // Its match the physicalRelease attribute
 // https://github.com/Radarr/Radarr/wiki/API:Calendar#get
-func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
+func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (Movies, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api%s", m.s.url, upcomingURI), nil)
 	if err != nil {
 		return nil, err
@@ -247,7 +247,7 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (*Movies, error) {
 	}
 
 	_ = response.Body.Close()
-	return &movies, nil
+	return movies, nil
 }
 
 // Delete given movie
