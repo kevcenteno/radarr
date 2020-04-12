@@ -255,6 +255,15 @@ var DummyHistoryResponse string = `
 	}]
 }`
 
+// DummyExcludedMovies describe mocked /exclusions response
+var DummyExcludedMovies string = `
+[{
+	"id": 1,
+	"movieTitle": "Code 8",
+	"movieYear": 2019,
+	"tmdbId": 461130
+}]`
+
 var dummyMoviesResponse string = fmt.Sprintf("[%s, %s]", DummyMovieResponse, DummyMovieResponse)
 var dummyUpcomingWithBothFilterResponse = fmt.Sprintf("[%s]", DummyMovieResponse)
 
@@ -473,6 +482,13 @@ func (c *HTTPClient) Get(targetURL string) (resp *http.Response, err error) {
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
 			Body:       ioutil.NopCloser(bytes.NewBufferString(dummyDiskspaceResponse)),
+		}, nil
+
+	case fmt.Sprintf("%s/api%s", DummyURL, "/exclusions"):
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(DummyExcludedMovies)),
 		}, nil
 
 	default:

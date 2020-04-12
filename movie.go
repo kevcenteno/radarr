@@ -124,6 +124,17 @@ type Quality struct {
 // Movies multiple Radarr movies
 type Movies []*Movie
 
+// ExcludedMovie describe an excluded movie from being downloaded
+type ExcludedMovie struct {
+	ID         int    `json:"id"`
+	MovieTitle string `json:"movieTitle"`
+	MovieYear  int    `json:"movieYear"`
+	TmdbID     int    `json:"tmdbId"`
+}
+
+// ExcludedMovies descrive a set of excluded movies
+type ExcludedMovies []*ExcludedMovie
+
 // DeleteMovieOptions optionnal option while deleting movie
 type DeleteMovieOptions struct {
 	// If true the movie folder and all files will be deleted when the movie is deleted
@@ -273,5 +284,29 @@ func (m *MovieService) Delete(movie *Movie, opts ...*DeleteMovieOptions) error {
 	}
 
 	err = parseRadarrResponse(resp)
+	_ = resp.Body.Close()
 	return err
+}
+
+// Excluded Gets movies marked as List Exclusions
+// https://github.com/Radarr/Radarr/wiki/API:List-Exclusions
+func (m *MovieService) Excluded() (ExcludedMovies, error) {
+	resp, err := m.s.client.Get(fmt.Sprintf("%s/api%s", m.s.url, exclusionsURI))
+	if err != nil {
+		return nil, err
+	}
+
+	err = parseRadarrResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var movies ExcludedMovies
+	err = json.NewDecoder(resp.Body).Decode(&movies)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = resp.Body.Close()
+	return movies, nil
 }

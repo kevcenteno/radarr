@@ -25,7 +25,7 @@ Here are the currently supported endpoints:
   - [x] Delete the movie with the given ID
 - [ ] Movie Lookup
 - [ ] Queue
-- [ ] List Exclusions
+- [x] List Exclusions
 - [x] System-Status
 
 ## Getting started

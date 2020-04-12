@@ -269,3 +269,43 @@ func TestMovieService_Delete(t *testing.T) {
 		})
 	}
 }
+
+func TestMovieService_Excluded(t *testing.T) {
+	var expectedMovies ExcludedMovies
+	err := json.Unmarshal([]byte(internal.DummyExcludedMovies), &expectedMovies)
+	if err != nil {
+		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	}
+
+	tests := []struct {
+		name    string
+		s       *Service
+		want    ExcludedMovies
+		wantErr bool
+	}{
+		{
+			name: "Expected response",
+			s: newMovieService(&Service{
+				client: internal.DummyHTTPClient,
+				url:    internal.DummyURL,
+			}).s,
+			want:    expectedMovies,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &MovieService{
+				s: tt.s,
+			}
+			got, err := m.Excluded()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MovieService.Excluded() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MovieService.Excluded() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
