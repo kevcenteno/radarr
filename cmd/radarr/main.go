@@ -110,6 +110,11 @@ func main() {
 							},
 						},
 					},
+					{
+						Name:   "excluded",
+						Usage:  "Gets movies marked as List Exclusions",
+						Action: excluded,
+					},
 				},
 			},
 			{
@@ -268,5 +273,25 @@ func deleteMovie(c *cli.Context) error {
 		return err
 	}
 	fmt.Println("Successfully deleted")
+	return nil
+}
+
+func excluded(c *cli.Context) error {
+	client, err := initRadarrClient()
+	if err != nil {
+		return err
+	}
+
+	movies, err := client.Movies.Excluded()
+	if err != nil {
+		return err
+	}
+
+	r, err := json.Marshal(movies)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(r))
 	return nil
 }
