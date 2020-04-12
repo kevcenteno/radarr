@@ -2,29 +2,55 @@ package radarr
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
 func parseRadarrResponse(response *http.Response) error {
-	if response.StatusCode == http.StatusForbidden || response.StatusCode == http.StatusNotFound || response.StatusCode == http.StatusUnauthorized {
-		e := Error{}
-		e.Code = response.StatusCode
-		e.Message = "Unknown"
+	// If ok, send no error
+	if response.StatusCode == http.StatusOK {
+		return nil
+	}
 
-		// Because Radarr response contains 'error' key or 'message' key. Parse it, and set to e.Message
-		var body map[string]string
-		err := json.NewDecoder(response.Body).Decode(&body)
-		if err != nil {
-			return err
+	e := Error{}
+	e.Code = response.StatusCode
+	e.Message = "Unknown"
+
+	// Read response body as plain text
+	data, _ := ioutil.ReadAll(response.Body)
+
+	// Because Radarr response contains 'error' key or 'message' key. Parse it, and set to e.Message
+	var body map[string]string
+	err := json.Unmarshal(data, &body)
+
+	if err != nil {
+		switch {
+		case len(data) == 0:
+			// No body
+			return &e
+		default:
+			// Body as plain text
+			e.Message = string(data)
+			return &e
+		}
+	}
+
+	// If JSON decoding do not fail
+	switch {
+	case body["error"] != "":
+		e.Message = body["error"]
+		return &e
+	case body["message"] != "":
+		e.Message = body["message"]
+		return &e
+	default:
+		var m string
+		for key, value := range body {
+			m += fmt.Sprintf("%s=%s", key, value)
 		}
 
-		if body["error"] != "" {
-			e.Message = body["error"]
-		} else if body["message"] != "" {
-			e.Message = body["message"]
-		}
-		// Return final error
+		e.Message = fmt.Sprintf("Unable to read Radarr response body: %s", m)
 		return &e
 	}
-	return nil
 }

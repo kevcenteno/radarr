@@ -16,15 +16,6 @@ func Test_parseRadarrResponse(t *testing.T) {
 		wantMessage string
 	}{
 		{
-			name: "Invalid JSON",
-			response: &http.Response{
-				StatusCode: http.StatusNotFound,
-				Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
-			},
-			wantErr:     true,
-			wantMessage: "invalid character 'o' in literal false (expecting 'a')",
-		},
-		{
 			name: "No error",
 			response: &http.Response{
 				Status:     http.StatusText(http.StatusOK),
@@ -34,34 +25,32 @@ func Test_parseRadarrResponse(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: http.StatusText(http.StatusNotFound),
+			name: "Body does not contains 'error' or 'message' keys",
 			response: &http.Response{
-				Status:     http.StatusText(http.StatusNotFound),
-				StatusCode: http.StatusNotFound,
+				StatusCode: http.StatusBadRequest,
 				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
 			},
-			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusNotFound, "Unknown"),
 			wantErr:     true,
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message 'Unable to read Radarr response body: foo=bar'", http.StatusBadRequest),
 		},
 		{
-			name: http.StatusText(http.StatusForbidden),
+			name: "No body",
+			response: &http.Response{
+				StatusCode: http.StatusNotFound,
+				Body:       http.NoBody,
+			},
+			wantErr:     true,
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message 'Unknown'", http.StatusNotFound),
+		},
+		{
+			name: "Not a JSON body",
 			response: &http.Response{
 				Status:     http.StatusText(http.StatusForbidden),
 				StatusCode: http.StatusForbidden,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
+				Body:       ioutil.NopCloser(bytes.NewBufferString("foo")),
 			},
-			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusForbidden, "Unknown"),
 			wantErr:     true,
-		},
-		{
-			name: http.StatusText(http.StatusUnauthorized),
-			response: &http.Response{
-				Status:     http.StatusText(http.StatusUnauthorized),
-				StatusCode: http.StatusUnauthorized,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo": "bar"}`)),
-			},
-			wantMessage: fmt.Sprintf("Radarr error: code %d, message '%s'", http.StatusUnauthorized, "Unknown"),
-			wantErr:     true,
+			wantMessage: fmt.Sprintf("Radarr error: code %d, message 'foo'", http.StatusForbidden),
 		},
 	}
 
