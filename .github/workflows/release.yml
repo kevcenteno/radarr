@@ -41,12 +41,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Checking for unchecked errors
-        run: |
-          go get -u github.com/kisielk/errcheck
-          export PATH=$PATH:$(go env GOPATH)/bin
-          errcheck ./...
-
       - name: Execute local tests
         run: go test -v -coverprofile=cover.out -cover ./...
 
