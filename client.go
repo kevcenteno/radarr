@@ -27,10 +27,10 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 
 	// if client not specified, defaulting to default http client
 	if client == nil {
-		d := http.DefaultClient
-		d.Transport = newTransport(apiKey)
-		d.Timeout = time.Second * 10
-		client = d
+		client = &http.Client{
+			Transport: newTransport(apiKey),
+			Timeout:   time.Second * 10,
+		}
 	}
 
 	s := &Service{client: client, url: valid.String()}

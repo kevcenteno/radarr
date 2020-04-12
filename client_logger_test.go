@@ -1,180 +1,12 @@
 package radarr
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"reflect"
-	"strings"
 	"testing"
 
 	internal "github.com/SkYNewZ/radarr/internal/radarr"
-	"github.com/kami-zh/go-capturer"
 )
-
-type test struct {
-	title    string
-	expected interface{}
-	got      interface{}
-}
-
-func TestLogRequestMessage(t *testing.T) {
-	m := fmt.Sprintf(logReqMsg, "foo")
-	cases := []test{
-		{
-			title:    "Message should contain 'foo'",
-			expected: true,
-			got:      strings.Contains(m, "foo"),
-		},
-		{
-			title:    "Message should contain 'API Request Details:'",
-			expected: true,
-			got:      strings.Contains(m, "API Request Details:"),
-		},
-		{
-			title:    "Message should contain '[ REQUEST ]'",
-			expected: true,
-			got:      strings.Contains(m, "[ REQUEST ]"),
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.title, func(t *testing.T) {
-			if c.expected != c.got {
-				t.Errorf("Got '%v' want '%v'", c.got, c.expected)
-			}
-		})
-	}
-}
-
-func TestLogResponseMessage(t *testing.T) {
-	m := fmt.Sprintf(logRespMsg, "foo")
-	cases := []test{
-		{
-			title:    "Message should contain 'foo'",
-			expected: true,
-			got:      strings.Contains(m, "foo"),
-		},
-		{
-			title:    "Message should contain 'API Response Details:'",
-			expected: true,
-			got:      strings.Contains(m, "API Response Details:"),
-		},
-		{
-			title:    "Message should contain '[ RESPONSE ]'",
-			expected: true,
-			got:      strings.Contains(m, "[ RESPONSE ]"),
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.title, func(t *testing.T) {
-			if c.expected != c.got {
-				t.Errorf("Got '%v' want '%v'", c.got, c.expected)
-			}
-		})
-	}
-}
-
-func TestTransport_RoundTrip(t *testing.T) {
-	// Request send to internal.MockedTransports
-	var exepectedRequest = http.Request{Header: http.Header{}, URL: internal.ParseDummyURL}
-
-	var expectedDebugLog = []string{
-		"API Request Details:",
-		"GET / HTTP/1.1",
-		fmt.Sprintf("Host: %s", internal.ParseDummyURL.Host),
-		"User-Agent: SkYNewZ-Go-http-client/1.1",
-		"Content-Type: application/json; charset=utf-8",
-		"Accept-Encoding: gzip",
-		"API Response Details:",
-		"HTTP/0.0 200 OK",
-		`{"foo": "bar"}`,
-	}
-
-	var mockedTransports = internal.NewMockedTransports()
-
-	// Create a new Transport to override default one
-	trans := transport{
-		transport: mockedTransports.MockedTransport1,
-		apiKey:    internal.DummyAPIKey,
-	}
-
-	// Execute function without DEBUG
-	var err error
-	var response *http.Response
-	out := capturer.CaptureStdout(func() {
-		_ = os.Unsetenv(envLog)
-		response, err = trans.RoundTrip(&exepectedRequest)
-	})
-
-	cases := []test{
-		{
-			title:    "Error should be nil",
-			expected: nil,
-			got:      err,
-		},
-		{
-			title:    "Request header should contain correct User-Agent",
-			expected: "SkYNewZ-Go-http-client/1.1",
-			got:      exepectedRequest.Header.Get("User-Agent"),
-		},
-		{
-			title:    "Request header should contain correct Content-Type",
-			expected: "application/json; charset=utf-8",
-			got:      exepectedRequest.Header.Get("Content-Type"),
-		},
-		{
-			title:    "Request header should contain API key",
-			expected: internal.DummyAPIKey,
-			got:      exepectedRequest.Header.Get("X-Api-Key"),
-		},
-		{
-			title:    fmt.Sprintf("%s is NOT set: nothing should be print", envLog),
-			expected: "",
-			got:      out,
-		},
-		{
-			title:    "Response should be the same",
-			expected: mockedTransports.MockedTransport1.MockedResponse,
-			got:      response,
-		},
-	}
-
-	// Execute function with DEBUG
-	out = capturer.CaptureStdout(func() {
-		_ = os.Setenv(envLog, "DEBUG")
-		_, err = trans.RoundTrip(&exepectedRequest)
-		_ = os.Unsetenv(envLog)
-	})
-
-	for _, s := range expectedDebugLog {
-		cases = append(cases, test{
-			title:    fmt.Sprintf("%s is set: debug request/response should be equal", envLog),
-			expected: true,
-			got:      strings.Contains(out, s),
-		})
-	}
-
-	// Test returned error
-	trans = transport{
-		transport: mockedTransports.MockedTransport2,
-	}
-	_, err = trans.RoundTrip(&exepectedRequest)
-	cases = append(cases, test{
-		title:    "Error should be not nil",
-		expected: false,
-		got:      err == nil,
-	})
-
-	for _, c := range cases {
-		t.Run(c.title, func(t *testing.T) {
-			if c.expected != c.got {
-				t.Errorf("Got '%v' want '%v'", c.got, c.expected)
-			}
-		})
-	}
-}
 
 func Test_newTransport(t *testing.T) {
 	tests := []struct {
@@ -197,27 +29,42 @@ func Test_newTransport(t *testing.T) {
 	}
 }
 
-func Test_isDebugLevel(t *testing.T) {
+func Test_transport_RoundTrip(t *testing.T) {
+	req := &http.Request{Header: http.Header{}}
 	tests := []struct {
 		name string
-		want bool
+		req  *http.Request
+		want string
 	}{
 		{
-			name: "DEBUG",
-			want: true,
+			name: "X-Api-Key",
+			req:  req,
+			want: "foo",
 		},
 		{
-			name: "Foo",
-			want: false,
+			name: "Content-Type",
+			req:  req,
+			want: "application/json; charset=utf-8",
+		},
+		{
+			name: "User-Agent",
+			req:  req,
+			want: "SkYNewZ-Go-http-client/1.1",
 		},
 	}
+
+	// Fake transport to avoid the real HTTP request
+	trans := transport{
+		transport: &internal.DummyHTTPTransport{},
+		apiKey:    "foo",
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = os.Setenv(envLog, tt.name)
-			if got := isDebugLevel(); got != tt.want {
-				t.Errorf("isDebugLevel() = %v, want %v", got, tt.want)
+			_, _ = trans.RoundTrip(tt.req)
+			if req.Header.Get(tt.name) != tt.want {
+				t.Errorf("transport.RoundTrip() = %s, want %v", req.Header.Get(tt.name), tt.want)
 			}
 		})
 	}
-	_ = os.Unsetenv(envLog)
 }
