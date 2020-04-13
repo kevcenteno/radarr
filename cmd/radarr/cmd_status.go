@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -17,10 +18,21 @@ func init() {
 	app.Commands = append(app.Commands, statusCommand)
 }
 
-func getStatus(*cli.Context) error {
+func getStatus(c *cli.Context) error {
 	status, err := radarrClient.SystemStatus.Get()
 	if err != nil {
 		return err
+	}
+
+	// Print as JSON if provided
+	if c.Bool("json") {
+		data, err := json.Marshal(status)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		return nil
 	}
 
 	v := reflect.ValueOf(*status)

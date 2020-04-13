@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -71,10 +72,21 @@ func init() {
 	}...)
 }
 
-func listMovies(*cli.Context) error {
+func listMovies(c *cli.Context) error {
 	movies, err := radarrClient.Movies.List()
 	if err != nil {
 		return err
+	}
+
+	// Print as JSON if provided
+	if c.Bool("json") {
+		data, err := json.Marshal(movies)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		return nil
 	}
 
 	t.SetHeader([]string{"Id", "Title", "Downloaded", "Monitored", "Added"})
@@ -110,6 +122,17 @@ func getMovie(c *cli.Context) error {
 	movie, err := radarrClient.Movies.Get(m)
 	if err != nil {
 		return err
+	}
+
+	// Print as JSON if provided
+	if c.Bool("json") {
+		data, err := json.Marshal(movie)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		return nil
 	}
 
 	v := reflect.ValueOf(*movie)
@@ -157,6 +180,17 @@ func upcoming(c *cli.Context) error {
 	movies, err := radarrClient.Movies.Upcoming(opts)
 	if err != nil {
 		return err
+	}
+
+	// Print as JSON if provided
+	if c.Bool("json") {
+		data, err := json.Marshal(movies)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		return nil
 	}
 
 	t.SetHeader([]string{"Id", "Title", "Downloaded", "Monitored", "Added"})
@@ -210,6 +244,17 @@ func excluded(c *cli.Context) error {
 	movies, err := radarrClient.Movies.Excluded()
 	if err != nil {
 		return err
+	}
+
+	// Print as JSON if provided
+	if c.Bool("json") {
+		data, err := json.Marshal(movies)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		return nil
 	}
 
 	// Set header

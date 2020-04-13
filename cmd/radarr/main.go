@@ -11,8 +11,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var radarURL string
-var radarrAPIKey string
 var radarrClient *radarr.Service
 
 var t *tablewriter.Table = tablewriter.NewWriter(os.Stdout)
@@ -28,23 +26,26 @@ var app *cli.App = &cli.App{
 	EnableBashCompletion: true,
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:        "url",
-			EnvVars:     []string{"RADARR_URL"},
-			Required:    true,
-			Usage:       "Radarr instance URL",
-			Destination: &radarURL,
+			Name:     "url",
+			EnvVars:  []string{"RADARR_URL"},
+			Required: true,
+			Usage:    "Radarr instance URL",
 		},
 		&cli.StringFlag{
-			Name:        "apiKey",
-			EnvVars:     []string{"RADARR_API_KEY"},
-			Required:    true,
-			Usage:       "Radarr API key",
-			Destination: &radarrAPIKey,
+			Name:     "apiKey",
+			EnvVars:  []string{"RADARR_API_KEY"},
+			Required: true,
+			Usage:    "Radarr API key",
+		},
+		&cli.BoolFlag{
+			Name:  "json",
+			Usage: "Print output as JSON instead of table",
 		},
 	},
-	Authors: []*cli.Author{{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
+	HideVersion: true,
+	Authors:     []*cli.Author{{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
 	Before: func(c *cli.Context) error {
-		s, err := radarr.New(radarURL, radarrAPIKey, nil)
+		s, err := radarr.New(c.String("url"), c.String("apiKey"), nil)
 		if err != nil {
 			return err
 		}

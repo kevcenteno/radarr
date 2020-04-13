@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"runtime"
 
@@ -36,7 +37,16 @@ func init() {
 	app.Commands = append(app.Commands, versionCommand)
 }
 
-func showVersion(*cli.Context) error {
-	fmt.Printf("radarr %s compiled with %v on %v/%v\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+func showVersion(c *cli.Context) error {
+	if c.Bool("json") {
+		data, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(data))
+		return nil
+	}
+
+	fmt.Println(v)
 	return nil
 }
