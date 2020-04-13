@@ -2,27 +2,16 @@
 
 ## Getting started
 
-### Install with Go
-
-```bash
-$ go get github.com/SkYNewZ/radarr/cmd/radarr
-```
-
-### Download latest release
-
 Checkout [latest](https://github.com/SkYNewZ/radarr/releases/latest) release. Download it and place into your `$PATH`.
 
 ## Usage
 
-```bash
+```
 NAME:
    Radarr CLI - Perform actions on your Radarr instance using CLI
 
 USAGE:
    radarr [global options] command [command options] [arguments...]
-
-VERSION:
-   development
 
 AUTHOR:
    SkYNewZ <quentin@lemairepro.fr>
