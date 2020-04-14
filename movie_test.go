@@ -2,17 +2,14 @@ package radarr
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_newMovieService(t *testing.T) {
-	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: dummyURL}
 
 	tests := []struct {
 		name    string
@@ -38,15 +35,14 @@ func Test_newMovieService(t *testing.T) {
 }
 
 func TestMovieService_Get(t *testing.T) {
-	var expectedMovie *Movie
-	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	var expectedMovie Movie
+	if err := json.NewDecoder(dummyMovieResponse().Body).Decode(&expectedMovie); err != nil {
+		t.Fatal(err)
 	}
 
 	goodService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	tests := []struct {
@@ -60,17 +56,16 @@ func TestMovieService_Get(t *testing.T) {
 			name:    "Same response",
 			movieID: 217,
 			service: goodService.s,
-			want:    expectedMovie,
+			want:    &expectedMovie,
 			wantErr: false,
 		},
 	}
 
 	var m *MovieService
-	var got *Movie
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m = &MovieService{tt.service, nil}
-			got, err = m.Get(tt.movieID)
+			got, err := m.Get(tt.movieID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MovieService.Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -84,14 +79,13 @@ func TestMovieService_Get(t *testing.T) {
 
 func TestMovieService_List(t *testing.T) {
 	var expectedMovies Movies
-	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expectedMovies)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyMoviesResponse().Body).Decode(&expectedMovies); err != nil {
+		t.Fatal(err)
 	}
 
 	goodService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	tests := []struct {
@@ -125,20 +119,18 @@ func TestMovieService_List(t *testing.T) {
 
 func TestMovieService_Upcoming(t *testing.T) {
 	var expectedMovies Movies
-	err := json.Unmarshal([]byte(fmt.Sprintf("[%s, %s]", internal.DummyMovieResponse, internal.DummyMovieResponse)), &expectedMovies)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyMoviesResponse().Body).Decode(&expectedMovies); err != nil {
+		t.Fatal(err)
 	}
 
-	var expectedMovie *Movie
-	err = json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	var expectedMovie Movie
+	if err := json.NewDecoder(dummyMovieResponse().Body).Decode(&expectedMovie); err != nil {
+		t.Fatal(err)
 	}
 
 	goodService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	tests := []struct {
@@ -189,7 +181,7 @@ func TestMovieService_Upcoming(t *testing.T) {
 		{
 			name:    "Both filters",
 			service: goodService.s,
-			want:    Movies{expectedMovie},
+			want:    Movies{&expectedMovie},
 			wantErr: false,
 			opts: func() []*UpcomingOptions {
 				start := time.Date(2019, time.November, 19, 23, 0, 0, 0, time.UTC)
@@ -219,15 +211,14 @@ func TestMovieService_Delete(t *testing.T) {
 		opts  []*DeleteMovieOptions
 	}
 
-	var dummyMovie *Movie
-	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &dummyMovie)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	var expectedMovie Movie
+	if err := json.NewDecoder(dummyMovieResponse().Body).Decode(&expectedMovie); err != nil {
+		t.Fatal(err)
 	}
 
 	goodService := newMovieService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	tests := []struct {
@@ -239,24 +230,24 @@ func TestMovieService_Delete(t *testing.T) {
 		{
 			name:    "Delete without option",
 			service: goodService.s,
-			args:    args{movie: dummyMovie},
+			args:    args{movie: &expectedMovie},
 			wantErr: false,
 		},
 		{
 			name:    "Delete with addExclusion option",
-			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{AddExclusion: true}}},
+			args:    args{movie: &expectedMovie, opts: []*DeleteMovieOptions{{AddExclusion: true}}},
 			service: goodService.s,
 			wantErr: false,
 		},
 		{
 			name:    "Delete with deleteFiles option",
-			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true}}},
+			args:    args{movie: &expectedMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true}}},
 			service: goodService.s,
 			wantErr: false,
 		},
 		{
 			name:    "Delete with both options",
-			args:    args{movie: dummyMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true, AddExclusion: true}}},
+			args:    args{movie: &expectedMovie, opts: []*DeleteMovieOptions{{DeleteFiles: true, AddExclusion: true}}},
 			service: goodService.s,
 			wantErr: false,
 		},
@@ -275,9 +266,8 @@ func TestMovieService_Delete(t *testing.T) {
 
 func TestMovieService_Excluded(t *testing.T) {
 	var expectedMovies ExcludedMovies
-	err := json.Unmarshal([]byte(internal.DummyExcludedMovies), &expectedMovies)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyExcludedMovies().Body).Decode(&expectedMovies); err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
@@ -289,8 +279,8 @@ func TestMovieService_Excluded(t *testing.T) {
 		{
 			name: "Expected response",
 			s: newMovieService(&Service{
-				client: internal.DummyHTTPClient,
-				url:    internal.DummyURL,
+				client: dummyHTTPClient,
+				url:    dummyURL,
 			}).s,
 			want:    expectedMovies,
 			wantErr: false,

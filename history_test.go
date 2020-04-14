@@ -5,12 +5,10 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_newHistoryService(t *testing.T) {
-	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: dummyURL}
 	tests := []struct {
 		name    string
 		service *Service
@@ -33,14 +31,13 @@ func Test_newHistoryService(t *testing.T) {
 
 func TestHistoryService_Get(t *testing.T) {
 	goodService := newHistoryService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	var expectedResponse *History
-	err := json.Unmarshal([]byte(internal.DummyHistoryResponse), &expectedResponse)
-	if err != nil {
-		t.Fatal("Error json.Unmarshal()")
+	if err := json.NewDecoder(dummyHistoryResponse().Body).Decode(&expectedResponse); err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
@@ -75,14 +72,13 @@ func TestHistoryService_Get(t *testing.T) {
 
 func TestHistoryService_paginate(t *testing.T) {
 	goodService := newHistoryService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	var expectedResponse *History
-	err := json.Unmarshal([]byte(internal.DummyHistoryResponse), &expectedResponse)
-	if err != nil {
-		t.Fatal("Error json.Unmarshal()")
+	if err := json.NewDecoder(dummyHistoryResponse().Body).Decode(&expectedResponse); err != nil {
+		t.Fatal(err)
 	}
 
 	type args struct {

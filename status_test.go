@@ -1,19 +1,17 @@
 package radarr
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
-	"time"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_newSystemStatusService(t *testing.T) {
 	type args struct {
 		s *Service
 	}
-	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: dummyURL}
 	tests := []struct {
 		name string
 		args args
@@ -36,34 +34,14 @@ func Test_newSystemStatusService(t *testing.T) {
 }
 
 func TestSystemStatusService_Get(t *testing.T) {
-	var expectedStatus *SystemStatus = &SystemStatus{
-		Version:           "3.0.0.2741",
-		BuildTime:         time.Date(2020, time.March, 23, 16, 23, 16, 00, time.UTC),
-		IsDebug:           false,
-		IsProduction:      true,
-		IsAdmin:           false,
-		IsUserInteractive: false,
-		StartupPath:       "/opt/radarr",
-		AppData:           "/config",
-		OsName:            "ubuntu",
-		OsVersion:         "20.04",
-		IsNetCore:         true,
-		IsMono:            false,
-		IsLinux:           true,
-		IsOsx:             false,
-		IsWindows:         false,
-		Branch:            "develop",
-		Authentication:    "forms",
-		SqliteVersion:     "3.31.1",
-		MigrationVersion:  169,
-		URLBase:           "",
-		RuntimeVersion:    "3.1.2",
-		RuntimeName:       "netCore",
+	var expectedStatus *SystemStatus
+	if err := json.NewDecoder(dummySystemStatusResponse().Body).Decode(&expectedStatus); err != nil {
+		t.Fatal(err)
 	}
 
 	goodService := newSystemStatusService(&Service{
-		client: internal.DummyHTTPClient,
-		url:    internal.DummyURL,
+		client: dummyHTTPClient,
+		url:    dummyURL,
 	})
 
 	tests := []struct {

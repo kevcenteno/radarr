@@ -4,9 +4,16 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
+
+type dummyHTTPTransport struct {
+	http.RoundTripper
+}
+
+// RoundTrip mocked default HTTP client transport RoundTrip function
+func (r *dummyHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, nil
+}
 
 func Test_newTransport(t *testing.T) {
 	tests := []struct {
@@ -55,7 +62,7 @@ func Test_transport_RoundTrip(t *testing.T) {
 
 	// Fake transport to avoid the real HTTP request
 	trans := transport{
-		transport: &internal.DummyHTTPTransport{},
+		transport: &dummyHTTPTransport{},
 		apiKey:    "foo",
 	}
 

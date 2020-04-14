@@ -1,11 +1,10 @@
 package radarr
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_newDiskspaceService(t *testing.T) {
@@ -13,7 +12,7 @@ func Test_newDiskspaceService(t *testing.T) {
 		s *Service
 	}
 
-	s := &Service{client: http.DefaultClient, url: internal.DummyURL}
+	s := &Service{client: http.DefaultClient, url: dummyURL}
 	tests := []struct {
 		name string
 		args args
@@ -35,36 +34,20 @@ func Test_newDiskspaceService(t *testing.T) {
 }
 
 func TestDiskspaceService_Get(t *testing.T) {
-	type fields struct {
-		s *Service
-	}
-
-	var classicService *Service = &Service{client: internal.DummyHTTPClient, url: internal.DummyURL}
-
-	var exepectedResponse *Diskspaces = &Diskspaces{
-		Diskspace{
-			Label:      "/",
-			Path:       "/",
-			FreeSpace:  11059175424,
-			TotalSpace: 15614754816,
-		},
-		Diskspace{
-			Label:      "/home",
-			Path:       "/home",
-			FreeSpace:  88775757824,
-			TotalSpace: 98325770240,
-		},
+	var exepectedResponse *Diskspaces
+	if err := json.NewDecoder(dummyDiskspaceResponse().Body).Decode(&exepectedResponse); err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
 		name    string
-		fields  fields
+		s       *Service
 		want    *Diskspaces
 		wantErr bool
 	}{
 		{
 			name:    "Diskspace lengh should be 2",
-			fields:  fields{classicService},
+			s:       &Service{client: dummyHTTPClient, url: dummyURL},
 			wantErr: false,
 			want:    exepectedResponse,
 		},
@@ -72,7 +55,7 @@ func TestDiskspaceService_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &DiskspaceService{
-				s: tt.fields.s,
+				s: tt.s,
 			}
 			got, err := s.Get()
 			if (err != nil) != tt.wantErr {

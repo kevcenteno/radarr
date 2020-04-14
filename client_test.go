@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func TestNew(t *testing.T) {
@@ -16,7 +14,7 @@ func TestNew(t *testing.T) {
 		client    HTTPClientInterface
 	}
 
-	var serviceWithCustomHTTPClient *Service = &Service{url: internal.DummyURL, client: internal.DummyHTTPClient}
+	var serviceWithCustomHTTPClient *Service = &Service{url: dummyURL, client: dummyHTTPClient}
 	serviceWithCustomHTTPClient.Movies = newMovieService(serviceWithCustomHTTPClient)
 	serviceWithCustomHTTPClient.Diskspace = newDiskspaceService(serviceWithCustomHTTPClient)
 	serviceWithCustomHTTPClient.SystemStatus = newSystemStatusService(serviceWithCustomHTTPClient)
@@ -25,8 +23,8 @@ func TestNew(t *testing.T) {
 
 	client := http.Client{}
 	client.Timeout = time.Second * 10
-	client.Transport = newTransport(internal.DummyAPIKey)
-	var serviceWithDefaultHTTPClient *Service = &Service{url: internal.DummyURL, client: &client}
+	client.Transport = newTransport(dummyAPIKey)
+	var serviceWithDefaultHTTPClient *Service = &Service{url: dummyURL, client: &client}
 	serviceWithDefaultHTTPClient.Movies = newMovieService(serviceWithDefaultHTTPClient)
 	serviceWithDefaultHTTPClient.Diskspace = newDiskspaceService(serviceWithDefaultHTTPClient)
 	serviceWithDefaultHTTPClient.SystemStatus = newSystemStatusService(serviceWithDefaultHTTPClient)
@@ -41,28 +39,28 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			name:    "Error because of bad URL",
-			args:    args{apiKey: internal.DummyAPIKey, radarrURL: "bad-url", client: internal.DummyHTTPClient},
+			args:    args{apiKey: dummyAPIKey, radarrURL: "bad-url", client: dummyHTTPClient},
 			wantErr: true,
 		},
 		{
 			name:    "Error because of non-provided API key",
-			args:    args{radarrURL: internal.DummyURL, client: internal.DummyHTTPClient},
+			args:    args{radarrURL: dummyURL, client: dummyHTTPClient},
 			wantErr: true,
 		},
 		{
 			name:    "Error because of non-provided API key",
-			args:    args{apiKey: "", radarrURL: internal.DummyURL, client: internal.DummyHTTPClient},
+			args:    args{apiKey: "", radarrURL: dummyURL, client: dummyHTTPClient},
 			wantErr: true,
 		},
 		{
 			name:    "Good service",
-			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: internal.DummyHTTPClient},
+			args:    args{radarrURL: dummyURL, apiKey: dummyAPIKey, client: dummyHTTPClient},
 			wantErr: false,
 			want:    serviceWithCustomHTTPClient,
 		},
 		{
 			name:    "Default HTTP Client",
-			args:    args{radarrURL: internal.DummyURL, apiKey: internal.DummyAPIKey, client: nil},
+			args:    args{radarrURL: dummyURL, apiKey: dummyAPIKey, client: nil},
 			wantErr: false,
 			want:    serviceWithDefaultHTTPClient,
 		},

@@ -2,16 +2,13 @@ package radarr
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
-
-	internal "github.com/SkYNewZ/radarr/internal/radarr"
 )
 
 func Test_newLookupService(t *testing.T) {
-	service := &Service{client: http.DefaultClient, url: internal.DummyURL}
+	service := &Service{client: http.DefaultClient, url: dummyURL}
 
 	tests := []struct {
 		name string
@@ -35,12 +32,11 @@ func Test_newLookupService(t *testing.T) {
 
 func TestLookupService_Plain(t *testing.T) {
 	var expectedMovies Movies
-	err := json.Unmarshal([]byte(fmt.Sprintf("[%s]", internal.DummyMovieResponse)), &expectedMovies)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyMoviesResponse().Body).Decode(&expectedMovies); err != nil {
+		t.Fatal(err)
 	}
 
-	service := &Service{client: internal.DummyHTTPClient, url: internal.DummyURL}
+	service := &Service{client: dummyHTTPClient, url: dummyURL}
 	tests := []struct {
 		name    string
 		s       *Service
@@ -89,11 +85,11 @@ func TestLookupService_Plain(t *testing.T) {
 
 func TestLookupService_Tmdb(t *testing.T) {
 	var expectedMovie Movie
-	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyMovieResponse().Body).Decode(&expectedMovie); err != nil {
+		t.Fatal(err)
 	}
-	service := &Service{client: internal.DummyHTTPClient, url: internal.DummyURL}
+
+	service := &Service{client: dummyHTTPClient, url: dummyURL}
 	tests := []struct {
 		name    string
 		s       *Service
@@ -135,11 +131,11 @@ func TestLookupService_Tmdb(t *testing.T) {
 
 func TestLookupService_Imdb(t *testing.T) {
 	var expectedMovie Movie
-	err := json.Unmarshal([]byte(internal.DummyMovieResponse), &expectedMovie)
-	if err != nil {
-		t.Errorf("json.Unmarshal() error: %s", err.Error())
+	if err := json.NewDecoder(dummyMovieResponse().Body).Decode(&expectedMovie); err != nil {
+		t.Fatal(err)
 	}
-	service := &Service{client: internal.DummyHTTPClient, url: internal.DummyURL}
+
+	service := &Service{client: dummyHTTPClient, url: dummyURL}
 	tests := []struct {
 		name    string
 		s       *Service
