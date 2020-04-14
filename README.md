@@ -1,6 +1,9 @@
 # Radarr Go client
 
-![](https://github.com/SkYNewZ/radarr/workflows/Release%20package/badge.svg)
+[![](https://github.com/SkYNewZ/radarr/workflows/Release%20package/badge.svg)](https://github.com/SkYNewZ/radarr/actions)
+[![](https://gocover.io/_badge/github.com/skynewz/radarr)](https://gocover.io/github.com/SkYNewZ/radarr)
+[![Go Report Card](https://goreportcard.com/badge/github.com/SkYNewZ/radarr)](https://goreportcard.com/report/github.com/SkYNewZ/radarr)
+[![Godoc](https://godoc.org/github.com/SkYNewZ/radarr?status.svg)](https://godoc.org/github.com/SkYNewZ/radarr)
 
 This is a Go package that lets you to interact with your Radarr instance.
 Developed for [Radarr API v2](https://github.com/Radarr/Radarr/wiki/API).
