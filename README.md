@@ -1,9 +1,12 @@
 # Radarr Go client
 
-[![](https://github.com/SkYNewZ/radarr/workflows/Release%20package/badge.svg)](https://github.com/SkYNewZ/radarr/actions)
+[![](https://github.com/SkYNewZ/radarr/workflows/CD/badge.svg)](https://github.com/SkYNewZ/radarr/actions)
 [![](https://gocover.io/_badge/github.com/skynewz/radarr)](https://gocover.io/github.com/SkYNewZ/radarr)
 [![Go Report Card](https://goreportcard.com/badge/github.com/SkYNewZ/radarr)](https://goreportcard.com/report/github.com/SkYNewZ/radarr)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/skynewz/radarr)
 [![Godoc](https://godoc.org/github.com/SkYNewZ/radarr?status.svg)](https://godoc.org/github.com/SkYNewZ/radarr)
+[![Docker Pulls](https://img.shields.io/docker/pulls/skynewz/radarr)](https://hub.docker.com/r/skynewz/radarr)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/skynewz/radarr)](https://github.com/SkYNewZ/radarr/releases)
 
 This is a Go package that lets you to interact with your Radarr instance.
 Developed for [Radarr API v2](https://github.com/Radarr/Radarr/wiki/API).
@@ -60,7 +63,3 @@ func main() {
 	// Frozen II
 }
 ```
-
-## Debug
-
-You can set `LOG_LEVEL=DEBUG` to print all requests/responses

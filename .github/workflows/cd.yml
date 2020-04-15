@@ -1,86 +1,23 @@
-name: Release package
+name: CD
 
 on:
-  pull_request:
-    branches: [master]
   push:
     tags:
       - "v*.*.*"
       - "!v*.*.*-*"
 
 jobs:
-  lint:
-    name: Lint code
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-        id: go
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.24.0
-
-      - name: Run golangci-lint
-        run: ./bin/golangci-lint run ./... --enable golint,unparam,misspell
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-        id: go
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Execute local tests
-        run: go test -v -coverprofile=cover.out -cover ./...
-
-      - name: Generate coverage report
-        run: go tool cover -html=cover.out -o coverage.html
-
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v1
-        with:
-          name: code-coverage-report
-          path: coverage.html
-
-  install:
-    name: Install
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-        id: go
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Go install
-        run: go install ./...
-
   build:
     name: Build
-    needs:
-      - lint
-      - test
-      - install
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [1.11, 1.12, 1.13, 1.14]
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: ${{ matrix.go }}
         id: go
 
       - name: Checkout code
@@ -111,28 +48,23 @@ jobs:
     needs: [build]
     steps:
       - name: Set up Go 1.14
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/setup-go@v1
         with:
           go-version: 1.14
         id: go
 
       - name: Checkout code
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/checkout@v2
 
       - name: Get back artifacts
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/download-artifact@v1
         with:
           name: binaries
 
       - name: Install git-chglog
-        if: startsWith(github.ref, 'refs/tags/')
         run: go get -u github.com/git-chglog/git-chglog/cmd/git-chglog
 
       - name: Generate changelog
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           export VERSION=$(git describe --tags --exact-match 2>/dev/null)
           export PATH=$PATH:$(go env GOPATH)/bin
@@ -140,7 +72,6 @@ jobs:
 
       - name: Create a new release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: binaries/radarr*
           body_path: CHANGELOG.md
@@ -148,3 +79,21 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build docker image
+        uses: docker/build-push-action@v1
+        with:
+          repository: skynewz/radarr
+          tags: latest
+          tag_with_ref: true
+          add_git_labels: true
+          push: true
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
