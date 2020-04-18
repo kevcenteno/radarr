@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 
 	client := http.Client{}
 	client.Timeout = time.Second * 10
-	client.Transport = newTransport(dummyAPIKey)
+	client.Transport = newTransport(dummyAPIKey, false)
 	var serviceWithDefaultHTTPClient *Service = &Service{url: dummyURL, client: &client}
 	serviceWithDefaultHTTPClient.Movies = newMovieService(serviceWithDefaultHTTPClient)
 	serviceWithDefaultHTTPClient.Diskspace = newDiskspaceService(serviceWithDefaultHTTPClient)

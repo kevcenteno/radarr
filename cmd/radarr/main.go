@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sort"
 	"time"
@@ -53,7 +54,9 @@ var app *cli.App = &cli.App{
 	Authors:     []*cli.Author{{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
 	Before: func(c *cli.Context) error {
 		// Instantiate Radarr client
-		s, err := radarr.New(c.String("url"), c.String("apiKey"), nil)
+		s, err := radarr.New(c.String("url"), c.String("apiKey"), nil, &radarr.ClientOptions{
+			Verbose: verbose,
+		})
 		if err != nil {
 			return err
 		}
@@ -77,6 +80,7 @@ func init() {
 
 func main() {
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

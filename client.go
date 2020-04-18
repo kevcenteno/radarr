@@ -13,9 +13,14 @@ type HTTPClientInterface interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// ClientOptions describe optional value to create a Radarr client
+type ClientOptions struct {
+	Verbose bool
+}
+
 // New Create a Radarr client
 // Optionnally specify an http.Client
-func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error) {
+func New(radarrURL, apiKey string, client HTTPClientInterface, opts ...*ClientOptions) (*Service, error) {
 	valid, err := url.ParseRequestURI(radarrURL)
 	if err != nil {
 		return nil, errors.New("Please specify a valid URL")
@@ -25,10 +30,15 @@ func New(radarrURL, apiKey string, client HTTPClientInterface) (*Service, error)
 		return nil, errors.New("Please specify your Radarr API key")
 	}
 
-	// if client not specified, defaulting to default http client
+	var verbose bool = false
+	if len(opts) > 0 {
+		verbose = opts[0].Verbose
+	}
+
+	// if client not specified, defaulting to default http client with our tansport
 	if client == nil {
 		client = &http.Client{
-			Transport: newTransport(apiKey),
+			Transport: newTransport(apiKey, verbose),
 			Timeout:   time.Second * 10,
 		}
 	}

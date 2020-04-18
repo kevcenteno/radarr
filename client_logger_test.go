@@ -16,20 +16,25 @@ func (r *dummyHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error
 }
 
 func Test_newTransport(t *testing.T) {
+	type args struct {
+		verbose bool
+		key     string
+	}
+
 	tests := []struct {
 		name string
 		want *transport
-		key  string
+		args args
 	}{
 		{
 			name: "Constructor",
-			want: &transport{transport: http.DefaultTransport, apiKey: "foo"},
-			key:  "foo",
+			want: &transport{transport: http.DefaultTransport, apiKey: "foo", verbose: false},
+			args: args{verbose: false, key: "foo"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := newTransport(tt.key); !reflect.DeepEqual(got, tt.want) {
+			if got := newTransport(tt.args.key, tt.args.verbose); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("newTransport() = %v, want %v", got, tt.want)
 			}
 		})
