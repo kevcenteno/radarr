@@ -34,7 +34,7 @@ jobs:
           REPO_ROOT=$(git rev-parse --show-toplevel)
           export PATH=$PATH:$(go env GOPATH)/bin
           export VERSION=$(git describe --tags --exact-match 2>/dev/null)
-          gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.Version=${VERSION}" ./...
+          gox -os="darwin linux windows" -arch="amd64" -output="$REPO_ROOT/bin/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X main.version=${VERSION}" ./...
 
       - name: Upload them as artifacts
         uses: actions/upload-artifact@v1

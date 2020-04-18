@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
 	"os"
 	"sort"
 	"time"
 
 	"github.com/SkYNewZ/radarr"
 	"github.com/olekukonko/tablewriter"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,13 +15,14 @@ var radarrClient *radarr.Service
 
 var t *tablewriter.Table = tablewriter.NewWriter(os.Stdout)
 
-// Version program version
-var Version string = "development"
+var version string = "development"
+var verbose bool = false
+var log *logrus.Logger = logrus.New()
 
 var app *cli.App = &cli.App{
 	Name:                 "Radarr CLI",
 	Usage:                "Perform actions on your Radarr instance",
-	Version:              Version,
+	Version:              version,
 	Compiled:             time.Now(),
 	EnableBashCompletion: true,
 	Flags: []cli.Flag{
@@ -41,22 +42,33 @@ var app *cli.App = &cli.App{
 			Name:  "json",
 			Usage: "Print output as JSON instead of table",
 		},
+		&cli.BoolFlag{
+			Name:        "verbose",
+			Aliases:     []string{"v"},
+			Usage:       "Print debug infos",
+			Destination: &verbose,
+		},
 	},
 	HideVersion: true,
 	Authors:     []*cli.Author{{Email: "quentin@lemairepro.fr", Name: "SkYNewZ"}},
 	Before: func(c *cli.Context) error {
+		// Instantiate Radarr client
 		s, err := radarr.New(c.String("url"), c.String("apiKey"), nil)
 		if err != nil {
 			return err
 		}
 
 		radarrClient = s
+
+		// Set debug level
+		if verbose {
+			log.SetLevel(logrus.DebugLevel)
+		}
 		return nil
 	},
 }
 
 func init() {
-	log.SetFlags(0)
 	t.SetAlignment(tablewriter.ALIGN_LEFT)
 	t.SetAutoWrapText(false)
 	sort.Sort(cli.FlagsByName(app.Flags))

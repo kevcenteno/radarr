@@ -73,6 +73,7 @@ func init() {
 }
 
 func listMovies(c *cli.Context) error {
+	log.Debugln("Listing movies")
 	movies, err := radarrClient.Movies.List()
 	if err != nil {
 		return err
@@ -80,6 +81,7 @@ func listMovies(c *cli.Context) error {
 
 	// Print as JSON if provided
 	if c.Bool("json") {
+		log.Debugln("Print output as JSON")
 		data, err := json.Marshal(movies)
 		if err != nil {
 			return err
@@ -89,8 +91,11 @@ func listMovies(c *cli.Context) error {
 		return nil
 	}
 
+	log.Debugln("Creating table")
 	t.SetHeader([]string{"Id", "Title", "Downloaded", "Monitored", "Added"})
 	var data [][]string
+
+	log.Debugf("Found %d movies", len(movies))
 
 	// Filter movies
 	for _, movie := range movies {
@@ -119,6 +124,8 @@ func getMovie(c *cli.Context) error {
 		return err
 	}
 
+	log.Debugf("Searching movie with ID %d", m)
+
 	movie, err := radarrClient.Movies.Get(m)
 	if err != nil {
 		return err
@@ -126,6 +133,7 @@ func getMovie(c *cli.Context) error {
 
 	// Print as JSON if provided
 	if c.Bool("json") {
+		log.Debugln("Print output as JSON")
 		data, err := json.Marshal(movie)
 		if err != nil {
 			return err
@@ -135,6 +143,7 @@ func getMovie(c *cli.Context) error {
 		return nil
 	}
 
+	log.Debugln("Creating table")
 	v := reflect.ValueOf(*movie)
 	typeOfMovie := v.Type()
 
@@ -177,6 +186,8 @@ func upcoming(c *cli.Context) error {
 		opts.End = end.Value()
 	}
 
+	log.Debugf("Searching upcoming movies with start=%v end=%v", opts.Start, opts.End)
+
 	movies, err := radarrClient.Movies.Upcoming(opts)
 	if err != nil {
 		return err
@@ -184,6 +195,7 @@ func upcoming(c *cli.Context) error {
 
 	// Print as JSON if provided
 	if c.Bool("json") {
+		log.Debugln("Print output as JSON")
 		data, err := json.Marshal(movies)
 		if err != nil {
 			return err
@@ -195,6 +207,8 @@ func upcoming(c *cli.Context) error {
 
 	t.SetHeader([]string{"Id", "Title", "Downloaded", "Monitored", "Added"})
 	var data [][]string
+
+	log.Debugf("Found %d movies", len(movies))
 
 	// Filter movies
 	for _, movie := range movies {
@@ -217,6 +231,8 @@ func deleteMovie(c *cli.Context) error {
 	if movieID == "" {
 		return errors.New("Please specify a movie ID")
 	}
+
+	log.Debugf("Deleting movie with ID %s", movieID)
 
 	m, err := strconv.Atoi(movieID)
 	if err != nil {
@@ -241,6 +257,7 @@ func deleteMovie(c *cli.Context) error {
 }
 
 func excluded(c *cli.Context) error {
+	log.Debugln("Searching excluded movies")
 	movies, err := radarrClient.Movies.Excluded()
 	if err != nil {
 		return err
@@ -248,6 +265,7 @@ func excluded(c *cli.Context) error {
 
 	// Print as JSON if provided
 	if c.Bool("json") {
+		log.Debugln("Print output as JSON")
 		data, err := json.Marshal(movies)
 		if err != nil {
 			return err
@@ -264,6 +282,8 @@ func excluded(c *cli.Context) error {
 	for i := 0; i < v.NumField(); i++ {
 		headers = append(headers, typeOfMovie.Field(i).Name)
 	}
+
+	log.Debugf("Found %d movies", len(movies))
 
 	var data [][]string
 	for _, movie := range movies {

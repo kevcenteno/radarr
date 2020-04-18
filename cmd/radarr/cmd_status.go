@@ -19,6 +19,7 @@ func init() {
 }
 
 func getStatus(c *cli.Context) error {
+	log.Debugln("Get Radarr status")
 	status, err := radarrClient.SystemStatus.Get()
 	if err != nil {
 		return err
@@ -26,6 +27,7 @@ func getStatus(c *cli.Context) error {
 
 	// Print as JSON if provided
 	if c.Bool("json") {
+		log.Debugln("Print output as JSON")
 		data, err := json.Marshal(status)
 		if err != nil {
 			return err
