@@ -125,19 +125,22 @@ func (s *HistoryService) paginate(page int) (*History, error) {
 	q.Add("pageSize", "50")
 
 	request.URL.RawQuery = q.Encode()
-	response, err := s.s.client.Do(request)
+	resp, err := s.s.client.Do(request)
 	if err != nil {
 		return nil, err
 	}
-	err = parseRadarrResponse(response)
+	defer resp.Body.Close()
+
+	err = parseRadarrResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var history History
-	err = json.NewDecoder(response.Body).Decode(&history)
+	err = json.NewDecoder(resp.Body).Decode(&history)
 	if err != nil {
 		return nil, err
 	}
+
 	return &history, nil
 }

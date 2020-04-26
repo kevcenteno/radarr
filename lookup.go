@@ -39,6 +39,7 @@ func (l *LookupService) Plain(term string) (Movies, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	err = parseRadarrResponse(resp)
 	if err != nil {
@@ -51,7 +52,6 @@ func (l *LookupService) Plain(term string) (Movies, error) {
 		return nil, err
 	}
 
-	_ = resp.Body.Close()
 	return movies, nil
 }
 
@@ -72,6 +72,7 @@ func (l *LookupService) Tmdb(TMDBID int) (*Movie, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	err = parseRadarrResponse(resp)
 	if err != nil {
@@ -84,7 +85,6 @@ func (l *LookupService) Tmdb(TMDBID int) (*Movie, error) {
 		return nil, err
 	}
 
-	_ = resp.Body.Close()
 	return &movie, nil
 }
 
@@ -110,6 +110,7 @@ func (l *LookupService) Imdb(IMDBID string) (*Movie, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	err = parseRadarrResponse(resp)
 	if err != nil {
@@ -122,6 +123,5 @@ func (l *LookupService) Imdb(IMDBID string) (*Movie, error) {
 		return nil, err
 	}
 
-	_ = resp.Body.Close()
 	return &movie, nil
 }

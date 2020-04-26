@@ -44,22 +44,22 @@ func newSystemStatusService(s *Service) *SystemStatusService {
 // Get https://github.com/Radarr/Radarr/wiki/API:System-Status#get
 func (s *SystemStatusService) Get() (*SystemStatus, error) {
 	statusURL := fmt.Sprintf("%s/api%s", s.s.url, statusURI)
-	response, err := s.s.client.Get(statusURL)
+	resp, err := s.s.client.Get(statusURL)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	err = parseRadarrResponse(response)
+	err = parseRadarrResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var status SystemStatus
-	err = json.NewDecoder(response.Body).Decode(&status)
+	err = json.NewDecoder(resp.Body).Decode(&status)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = response.Body.Close()
 	return &status, nil
 }

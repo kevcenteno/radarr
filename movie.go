@@ -167,23 +167,23 @@ type UpcomingOptions struct {
 // https://github.com/Radarr/Radarr/wiki/API:Movie#getid
 func (m *MovieService) Get(movieID int) (*Movie, error) {
 	movieURL := fmt.Sprintf("%s/api%s/%d", m.s.url, movieURI, movieID)
-	response, err := m.s.client.Get(movieURL)
+	resp, err := m.s.client.Get(movieURL)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	err = parseRadarrResponse(response)
+	err = parseRadarrResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var movie Movie
-	err = json.NewDecoder(response.Body).Decode(&movie)
+	err = json.NewDecoder(resp.Body).Decode(&movie)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = response.Body.Close()
 	return &movie, nil
 }
 
@@ -191,23 +191,23 @@ func (m *MovieService) Get(movieID int) (*Movie, error) {
 // https://github.com/Radarr/Radarr/wiki/API:Movie#get
 func (m *MovieService) List() (Movies, error) {
 	moviesURL := fmt.Sprintf("%s/api%s", m.s.url, movieURI)
-	response, err := m.s.client.Get(moviesURL)
+	resp, err := m.s.client.Get(moviesURL)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	err = parseRadarrResponse(response)
+	err = parseRadarrResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var movies Movies
-	err = json.NewDecoder(response.Body).Decode(&movies)
+	err = json.NewDecoder(resp.Body).Decode(&movies)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = response.Body.Close()
 	return movies, nil
 }
 
@@ -245,23 +245,23 @@ func (m *MovieService) Upcoming(opts ...*UpcomingOptions) (Movies, error) {
 		}
 	}
 
-	response, err := m.s.client.Do(req)
+	resp, err := m.s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	err = parseRadarrResponse(response)
+	err = parseRadarrResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var movies Movies
-	err = json.NewDecoder(response.Body).Decode(&movies)
+	err = json.NewDecoder(resp.Body).Decode(&movies)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = response.Body.Close()
 	return movies, nil
 }
 
@@ -286,9 +286,9 @@ func (m *MovieService) Delete(movie *Movie, opts ...*DeleteMovieOptions) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	err = parseRadarrResponse(resp)
-	_ = resp.Body.Close()
 	return err
 }
 
@@ -299,6 +299,7 @@ func (m *MovieService) Excluded() (ExcludedMovies, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	err = parseRadarrResponse(resp)
 	if err != nil {
@@ -311,6 +312,5 @@ func (m *MovieService) Excluded() (ExcludedMovies, error) {
 		return nil, err
 	}
 
-	_ = resp.Body.Close()
 	return movies, nil
 }
