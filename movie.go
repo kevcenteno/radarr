@@ -19,11 +19,8 @@ type Movie struct {
 		SourceID   int    `json:"sourceId"`
 		Votes      int    `json:"votes"`
 		VoteCount  int    `json:"voteCount"`
-		Language   struct {
-			ID   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"language"`
-		ID int `json:"id"`
+		Language   string `json:"language"`
+		ID         int    `json:"id"`
 	} `json:"alternativeTitles"`
 	SecondaryYearSourceID int       `json:"secondaryYearSourceId"`
 	SortTitle             string    `json:"sortTitle"`

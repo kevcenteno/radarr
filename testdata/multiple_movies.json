@@ -7,10 +7,7 @@
 		"sourceId": 330457,
 		"votes": 0,
 		"voteCount": 0,
-		"language": {
-			"id": 1,
-			"name": "English"
-		},
+		"language": "English",
 		"id": 461
 	}],
 	"secondaryYearSourceId": 0,
@@ -118,10 +115,7 @@
 		"sourceId": 330457,
 		"votes": 0,
 		"voteCount": 0,
-		"language": {
-			"id": 1,
-			"name": "English"
-		},
+		"language": "English",
 		"id": 461
 	}],
 	"secondaryYearSourceId": 0,
