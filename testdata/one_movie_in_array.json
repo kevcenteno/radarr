@@ -65,7 +65,7 @@
 				"id": 3,
 				"name": "WEBDL-1080p",
 				"source": "webdl",
-				"resolution": 1080,
+				"resolution": "1080",
 				"modifier": "none"
 			},
 			"revision": {
